@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;705&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Dancing+Script:wght@400..700&family=Cinzel:wght@400..900&family=Pacifico&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Global Typography Overrides */
+html, body, button, input, textarea, select {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6, .font-display, [class*="tracking-tight"] {
+  font-family: "Sora", sans-serif !important;
+}
+
+/* Custom styling for rich blogger articles compiled by the admin WYSIWYG editor */
+.blog-reader-rich {
+  font-family: var(--font-sans);
+}
+.blog-reader-rich strong {
+  font-weight: 700;
+}
+.blog-reader-rich em, .blog-reader-rich i {
+  font-style: italic;
+}
+.blog-reader-rich u {
+  text-decoration: underline;
+}
+.blog-reader-rich strike {
+  text-decoration: line-through;
+}
+.blog-reader-rich blockquote {
+  border-left: 4px solid #14b8a6;
+  padding-left: 1.25rem;
+  font-style: italic;
+  font-weight: 500;
+  margin: 1.5rem 0;
+  opacity: 0.95;
+}
+.blog-reader-rich img {
+  max-width: 100%;
+  border-radius: 1rem;
+  margin: 2rem auto;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  display: block;
+}
+.blog-reader-rich iframe, .blog-reader-rich video {
+  max-width: 100%;
+  border-radius: 1rem;
+  margin: 1.5rem auto;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  display: block;
+}
+.blog-reader-rich h1, .blog-reader-rich h2, .blog-reader-rich h3 {
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-display);
+}
+.blog-reader-rich h1 { font-size: 1.75rem; }
+.blog-reader-rich h2 { font-size: 1.5rem; }
+.blog-reader-rich h3 { font-size: 1.25rem; }
+.blog-reader-rich ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 1rem 0;
+}
+.blog-reader-rich ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 1rem 0;
+}
+.blog-reader-rich li {
+  margin-bottom: 0.25rem;
+}
+
+/* Image outline when active / selected for resizing */
+.blog-reader-rich img.selected-for-resize {
+  outline: 3px solid rgb(20, 184, 166);
+  outline-offset: 4px;
+  box-shadow: 0 0 20px rgba(20, 184, 166, 0.4);
+}
+
+/* Map font size selectors cleanly */
+.blog-reader-rich font[size="1"] { font-size: 0.75rem; line-height: 1.25rem; }
+.blog-reader-rich font[size="2"] { font-size: 0.875rem; line-height: 1.5rem; }
+.blog-reader-rich font[size="3"] { font-size: 1rem; line-height: 1.75rem; }
+.blog-reader-rich font[size="4"] { font-size: 1.125rem; line-height: 1.875rem; }
+.blog-reader-rich font[size="5"] { font-size: 1.375rem; line-height: 2rem; font-weight: 600; }
+.blog-reader-rich font[size="6"] { font-size: 1.75rem; line-height: 2.25rem; font-weight: 700; }
+.blog-reader-rich font[size="7"] { font-size: 2.25rem; line-height: 2.75rem; font-weight: 800; }
+
+/* Custom font face overrides inside WYSIWYG elements */
+.blog-reader-rich font[face="Inter"], .blog-reader-rich [style*="font-family: Inter"] {
+  font-family: "Inter", sans-serif;
+}
+.blog-reader-rich font[face="Space Grotesk"], .blog-reader-rich [style*="font-family: Space Grotesk"] {
+  font-family: "Space Grotesk", sans-serif;
+}
+.blog-reader-rich font[face="JetBrains Mono"], .blog-reader-rich [style*="font-family: JetBrains Mono"] {
+  font-family: "JetBrains Mono", monospace;
+}
+.blog-reader-rich font[face="Playfair Display"], .blog-reader-rich [style*="font-family: 'Playfair Display'"], .blog-reader-rich [style*="font-family: Playfair Display"] {
+  font-family: "Playfair Display", serif;
+}
+.blog-reader-rich font[face="Dancing Script"], .blog-reader-rich [style*="font-family: 'Dancing Script'"], .blog-reader-rich [style*="font-family: Dancing Script"] {
+  font-family: "Dancing Script", cursive;
+}
+.blog-reader-rich font[face="Cinzel"], .blog-reader-rich [style*="font-family: Cinzel"] {
+  font-family: "Cinzel", serif;
+}
+.blog-reader-rich font[face="Pacifico"], .blog-reader-rich [style*="font-family: Pacifico"] {
+  font-family: "Pacifico", cursive;
+}

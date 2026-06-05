@@ -1,0 +1,38 @@
+[
+  {
+    "id": "1780627922081",
+    "title": "How to Go Viral",
+    "slug": "how-to-go-viral",
+    "content": "going viral is not luck. it's a strategy",
+    "excerpt": "going viral is not luck. it's a strategy",
+    "author": "Social Ninja",
+    "imageUrl": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1000&auto=format&fit=crop&q=80",
+    "category": "Social Media Growth",
+    "createdAt": "2026-06-05T02:52:02.081Z",
+    "readTime": "1 min read"
+  },
+  {
+    "id": "repurpose-tiktok-instagram",
+    "title": "How to Repurpose TikTok Videos for Instagram Reels Without Watermarks",
+    "slug": "repurpose-repurpose-tiktok-instagram",
+    "content": "Repurposing content across social networks is one of the most effective strategies for scale. However, importing a video with a TikTok watermark can trigger an Instagram algorithm penalty, which severely limits your organic reach. Here is a step-by-step guide to doing it cleanly...\n\n### Why Watermarks Harm Your Reach\nMost major networks use visual classification models to detect competitor branding elements inside incoming frames. When the Instagram algorithm discovers a TikTok logo, it lowers the priority score of that post. To bypass this penalty, you must extract a direct, unwatermarked stream from video platforms.\n\n### Step 1: Extracting Clean Streams\nBy querying public content APIs, you can extract water-free play URLs. Standard web services bypass local storage restrictions by caching direct server nodes. Utilizing dynamic loaders, we can cleanly bypass these issues.\n\n### Step 2: Optimizing Video Cover Art\nA high-quality custom thumbnail is critical. Instead of accepting the automatically generated frame, manually select a frame with bold text to capture viewers. This ensures your profile grid is visually appealing.",
+    "excerpt": "Learn how the Instagram and TikTok algorithms treat competitor watermarks and find a step-by-step strategy to repurpose video content to double organic engagement.",
+    "author": "Social Media Ninja",
+    "imageUrl": "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=1000&auto=format&fit=crop&q=80",
+    "category": "Video Downloading Guides",
+    "createdAt": "2026-06-03T10:00:00.000Z",
+    "readTime": "3 min read"
+  },
+  {
+    "id": "maximize-engagement",
+    "title": "5 Practical Strategies to Maximize Short-Form Video Engagement",
+    "slug": "maximize-engagement",
+    "content": "Short-form content is moving faster than ever. Standard user attention spans have dropped to less than 3 seconds. To survive in the feed, your content must satisfy several architectural qualities...\n\n### 1. The Hook is Everything\nNever start a video with an intro, a slide, or a greeting like 'Hey guys'. Begin immediately with the most interesting moment or result of the video. Use bold typographic text overlays to signal the value explanation instantly.\n\n### 2. Micro-Edits and Transitions\nDo not let any visual frame persist for more than 4 seconds without some movement, zoom, cut, or slide. Keep users visually simulated to decrease swipe-away rates.\n\n### 3. Clear Call to Action (CTA)\nInstead of asking for general follows, ask visitors to take a single specific action: 'Check the link in bio' or 'Comment below'.",
+    "excerpt": "Survival guide for short-form creators. Find tips on structuring effective 3-second hooks, sequencing transitions, and setting CTAs.",
+    "author": "Viral Coach",
+    "imageUrl": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1000&auto=format&fit=crop&q=80",
+    "category": "Social Media Growth",
+    "createdAt": "2026-06-04T12:30:00.000Z",
+    "readTime": "4 min read"
+  }
+]

@@ -155,12 +155,47 @@ export default function App() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResult, setAiResult] = useState<string>("");
   const [copiedText, setCopiedText] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState<"home" | "tiktok" | "instagram" | "about" | "contact" | "privacy" | "terms" | "dmca" | "blog">("home");
+  const [currentPage, setCurrentPage] = useState<"home" | "tiktok" | "instagram" | "about" | "contact" | "privacy" | "terms" | "dmca" | "blog">(() => {
+    if (typeof window === "undefined") return "home";
+    const path = window.location.pathname.replace(/^\//, "").split("/")[0].toLowerCase();
+    const validPages: ("home" | "tiktok" | "instagram" | "about" | "contact" | "privacy" | "terms" | "dmca" | "blog")[] = [
+      "tiktok", "instagram", "about", "contact", "privacy", "terms", "dmca", "blog"
+    ];
+    if (validPages.indexOf(path as any) !== -1) {
+      return path as any;
+    }
+    return "home";
+  });
 
-  // Scroll to top when page changes for seamless legal viewing experience
+  // Scroll to top when page changes and push changes to browser window location state
   useEffect(() => {
+    if (typeof window === "undefined") return;
     window.scrollTo({ top: 0, behavior: "smooth" });
+
+    const currentPath = window.location.pathname.replace(/^\//, "").split("/")[0].toLowerCase();
+    const pagePath = currentPage === "home" ? "" : currentPage;
+    if (currentPath !== pagePath) {
+      window.history.pushState(null, "", "/" + pagePath);
+    }
   }, [currentPage]);
+
+  // Handle popstate events to make browser Back and Forward buttons work perfectly
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handlePopState = () => {
+      const path = window.location.pathname.replace(/^\//, "").split("/")[0].toLowerCase();
+      const validPages: ("home" | "tiktok" | "instagram" | "about" | "contact" | "privacy" | "terms" | "dmca" | "blog")[] = [
+        "tiktok", "instagram", "about", "contact", "privacy", "terms", "dmca", "blog"
+      ];
+      if (validPages.indexOf(path as any) !== -1) {
+        setCurrentPage(path as any);
+      } else {
+        setCurrentPage("home");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Dynamic downloads tracker which auto-increments and resets on daily basis at 12 AM
   const [downloadsCount, setDownloadsCount] = useState<number>(() => {

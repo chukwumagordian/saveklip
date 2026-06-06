@@ -348,7 +348,17 @@ export default function BlogPage({ isDarkMode, setCurrentPage }: BlogPageProps) 
       setLoading(true);
       const res = await fetch("/api/blog/posts");
       if (res.ok) {
-        const data = await res.json();
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (jsonErr) {
+          if (text.trim().toLowerCase().startsWith("<!doctype") || text.trim().toLowerCase().startsWith("<html")) {
+            setErrorMessage("Backend offline: This blog requires a full-stack Node.js server (e.g., Render Web Service) to host the Express API endpoints correctly.");
+            return;
+          }
+          throw jsonErr;
+        }
         setPosts(data);
       } else {
         setErrorMessage("Failed to load blog posts. Please refresh.");
@@ -380,7 +390,19 @@ export default function BlogPage({ isDarkMode, setCurrentPage }: BlogPageProps) 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
       });
-      const data = await res.json();
+      
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (jsonErr) {
+        if (text.trim().toLowerCase().startsWith("<!doctype") || text.trim().toLowerCase().startsWith("<html")) {
+          setLoginError("Login failed: Backend offline. Ensure full-stack Node.js environment is configured.");
+          return;
+        }
+        throw jsonErr;
+      }
+
       if (res.ok && data.success) {
         setIsLoggedIn(true);
         setAdminToken(data.token);
@@ -506,9 +528,20 @@ export default function BlogPage({ isDarkMode, setCurrentPage }: BlogPageProps) 
         body: JSON.stringify(postPayload)
       });
 
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (jsonErr) {
+        if (text.trim().toLowerCase().startsWith("<!doctype") || text.trim().toLowerCase().startsWith("<html")) {
+          setErrorMessage("Failed to publish: Backend offline. Full-stack hosting (e.g. Render Web Service) required.");
+          return;
+        }
+        throw jsonErr;
+      }
+
       if (res.ok) {
-        const newlyCreated = await res.json();
-        setPosts((prev) => [newlyCreated, ...prev]);
+        setPosts((prev) => [data, ...prev]);
         setSuccessMessage("Your fantastic article was published successfully!");
         // Reset form variables
         setNewTitle("");
@@ -520,8 +553,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage }: BlogPageProps) 
         }
         setTimeout(() => setSuccessMessage(""), 4000);
       } else {
-        const errorData = await res.json();
-        setErrorMessage(errorData.error || "Failed to publish article.");
+        setErrorMessage(data.error || "Failed to publish article.");
       }
     } catch (err) {
       setErrorMessage("Network loss during publication dispatch.");

@@ -237,7 +237,16 @@ export default function App() {
         body: JSON.stringify({ url }),
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data: any;
+      try {
+        data = JSON.parse(responseText);
+      } catch (jsonErr) {
+        if (responseText.trim().toLowerCase().startsWith("<!doctype") || responseText.trim().toLowerCase().startsWith("<html")) {
+          throw new Error("The backend server is offline or unreachable. If you deployed this, please make sure the app is hosted as a full-stack Node.js Web Service (such as Render Web Service, Heroku, or a VPS) and NOT as a static page (like Netlify or Render Static Sites) so that the Express backend can run.");
+        }
+        throw new Error("Invalid API response format from server. Please try again.");
+      }
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || "Failed to extract media information");
@@ -385,7 +394,16 @@ export default function App() {
         }),
       });
 
-      const data = await response.json();
+      const responseText = await response.text();
+      let data: any;
+      try {
+        data = JSON.parse(responseText);
+      } catch (jsonErr) {
+        if (responseText.trim().toLowerCase().startsWith("<!doctype") || responseText.trim().toLowerCase().startsWith("<html")) {
+          throw new Error("Backend server is offline or unreachable. Note: This app requires full-stack Node.js hosting to run the backend engine.");
+        }
+        throw new Error("Unable to parse AI response. Please try again.");
+      }
 
       if (!response.ok || !data.success) {
         throw new Error(data.error || "Failed to trigger AI engine");

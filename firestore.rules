@@ -1,11 +1,6 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Catchall default deny
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
     // Core validation helpers
     function isSignedIn() {
       return request.auth != null;
@@ -19,7 +14,7 @@ service cloud.firestore {
     }
 
     function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_-]+$');
     }
 
     function isValidBlogPost(data) {

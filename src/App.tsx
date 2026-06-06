@@ -94,8 +94,16 @@ export default function App() {
     }
 
     // Auto-detect browser language
-    const browserLang = navigator.language || (navigator.languages && navigator.languages[0]) || "en";
-    const langCode = browserLang.substring(0, 2).toLowerCase() as LanguageCode;
+    const browserLangStr = (navigator.language || (navigator.languages && navigator.languages[0]) || "en").toLowerCase();
+    
+    if (LANGUAGES.some(l => l.code === browserLangStr)) {
+      if (browserLangStr !== "en") {
+        sessionStorage.setItem("saveklip_lang_detected", "true");
+      }
+      return browserLangStr as LanguageCode;
+    }
+
+    const langCode = browserLangStr.substring(0, 2) as LanguageCode;
     
     if (LANGUAGES.some(l => l.code === langCode)) {
       if (langCode !== "en") {

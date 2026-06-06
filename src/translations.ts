@@ -1,5 +1,6 @@
 export type LanguageCode =
   | "en"
+  | "en-gb"
   | "es"
   | "fr"
   | "de"
@@ -10,7 +11,13 @@ export type LanguageCode =
   | "bn"
   | "zh"
   | "ja"
-  | "ru";
+  | "ru"
+  | "it"
+  | "tr"
+  | "id"
+  | "vi"
+  | "pl"
+  | "nl";
 
 export interface TranslationDictionary {
   // Navigation & Stats
@@ -96,7 +103,8 @@ export interface TranslationDictionary {
 }
 
 export const LANGUAGES: { code: LanguageCode; name: string; flag: string; isRTL?: boolean }[] = [
-  { code: "en", name: "English", flag: "🇬🇧" },
+  { code: "en", name: "English (US)", flag: "🇺🇸" },
+  { code: "en-gb", name: "English (UK)", flag: "🇬🇧" },
   { code: "es", name: "Español", flag: "🇪🇸" },
   { code: "fr", name: "Français", flag: "🇫🇷" },
   { code: "de", name: "Deutsch", flag: "🇩🇪" },
@@ -107,7 +115,13 @@ export const LANGUAGES: { code: LanguageCode; name: string; flag: string; isRTL?
   { code: "bn", name: "বাংলা", flag: "🇧🇩" },
   { code: "zh", name: "中文", flag: "🇨🇳" },
   { code: "ja", name: "日本語", flag: "🇯🇵" },
-  { code: "ru", name: "Русский", flag: "🇷🇺" }
+  { code: "ru", name: "Русский", flag: "🇷🇺" },
+  { code: "it", name: "Italiano", flag: "🇮🇹" },
+  { code: "tr", name: "Türkçe", flag: "🇹🇷" },
+  { code: "id", name: "Bahasa Indonesia", flag: "🇮🇩" },
+  { code: "vi", name: "Tiếng Việt", flag: "🇻🇳" },
+  { code: "pl", name: "Polski", flag: "🇵🇱" },
+  { code: "nl", name: "Nederlands", flag: "🇳🇱" }
 ];
 
 export const translations: Record<LanguageCode, TranslationDictionary> = {
@@ -130,6 +144,138 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     heroTitleInstagram: "Save High-Quality Instagram Videos",
     heroDescHome: "Easily download your favorite TikTok videos and Instagram reels in high quality. No sign-ups, no watermarks, and completely free.",
     heroDescTikTok: "Save your favorite TikTok videos directly to your device stream-free and watermark-free. No sign-ups, no installation, and completely free.",
+    heroDescInstagram: "Download Reels, profile videos, and photo posts from Instagram in pristine visual quality. No sign-ups, no watermarks, and completely free.",
+    pasteLabel: "Paste Video URL Link",
+    placeholderHome: "https://tiktok.com/... or https://instagram.com/reel/...",
+    placeholderTikTok: "https://www.tiktok.com/@username/video/7123456...",
+    placeholderInstagram: "https://www.instagram.com/reel/Ct12345...",
+    clearLabel: "Clear link",
+    downloadBtn: "Download",
+    extractingBtn: "Extracting Media...",
+    validationErrorEmpty: "Please enter a valid TikTok or Instagram URL first",
+    validationErrorInvalid: "Please enter a valid TikTok or Instagram video link",
+    skeletonText: "Extracting Media Details...",
+    platformDetected: "detected",
+    extractId: "Extract ID:",
+    downloadAnother: "Download another video",
+    livePreview: "Live HD Preview",
+    views: "Views",
+    likes: "Likes",
+    comments: "Comments",
+    shares: "Shares",
+    durationLabel: "Duration",
+    proHDBadge: "Pro HD",
+    mp4Format: "MP4 format",
+    downloadVideoBtn: "Download Video",
+    savedLabel: "Saved",
+    finishedLabel: "Finished!",
+    audioMP3Label: "audio (MP3)",
+    audioMP3Desc: "High Quality audio",
+    getMP3AudioBtn: "Get MP3 audio",
+    sslSecureLabel: "Encrypted SSL downlinks verified • Safe direct origin source server bypass",
+    capabilitiesTitleTikTok: "TikTok Downloader Capabilities",
+    capabilitiesTitleInstagram: "Instagram Downloader Capabilities",
+    capabilitiesTitleGeneral: "Supported Platform Capabilities",
+    tiktokCap1: "Download unlimited TikTok posts without watermarks",
+    tiktokCap2: "Extract background tracks and sound overlays natively",
+    tiktokCap3: "Extract multiple target resolutions (HD available)",
+    tiktokCap4: "Instant processing directly bypassing client barriers",
+    instagramCap1: "Extract Reels, Posts, and Carousel items quickly",
+    instagramCap2: "Direct CDN fetch loops preserving premium bitrate files",
+    instagramCap3: "MP3 dynamic extract for reels sound clips",
+    instagramCap4: "Complete safe bypass of feed logins & security tokens",
+    faqTitle: "Frequently Answered FAQ",
+    faqSubtitle: "Everything you need to know about watermarks, downloading speed limits, and file safety.",
+    faqItemsHome: [
+      {
+        question: "How do I download a video from TikTok or Instagram?",
+        answer: "Simply navigate to TikTok or Instagram, copy the URL of the video, reel, or post, paste it into our address bar above, and click 'Download'. Select your preferred quality and hit Download!"
+      },
+      {
+        question: "Are the downloaded videos free of watermarks?",
+        answer: "Yes, our social media pipeline extracts direct, raw host streams so video formats are completely watermark-free—perfect for clean archives and multi-platform repurposing."
+      },
+      {
+        question: "Which formats and qualities are supported?",
+        answer: "We support high-definition video files up to 1080p, as well as fast compressed qualities for lower bandwidth (720p, 480p, 360p) and direct high-frequency audio extraction in MP3/M4A format."
+      },
+      {
+        question: "Do I need to sign up for an account?",
+        answer: "No account registration or software installation is required. Everything runs entirely within our ultra-secure browser application to maintain your complete digital privacy."
+      },
+      {
+        question: "Is there a limit on how many videos I can download?",
+        answer: "We offer completely unlimited extracts! To protect server infrastructure, we implement a mild rate-limiting mechanism of 15 requests per minute, which is more than enough for casual and pro use."
+      }
+    ],
+    faqItemsTikTok: [
+      {
+        question: "How do I download a video from TikTok?",
+        answer: "Simply navigate to TikTok, copy the URL of the video (using the share button), paste it into our address bar above. Select your preferred high-quality video or audio and enjoy!"
+      },
+      {
+        question: "Are the downloaded TikTok videos free of watermarks?",
+        answer: "Yes, our TikTok pipeline extracts direct, raw stream sources so files are 100% watermark-free—perfect for clean creator archives and multi-platform backup."
+      },
+      {
+        question: "Can I download audio tracks or music from TikTok?",
+        answer: "Yes! You can choose to extract and convert the background tracks or dynamic sound overlay from any TikTok video directly to high-bitrate audio formats like MP3."
+      },
+      {
+        question: "Do I need to sign up to download TikTok videos?",
+        answer: "No account registration, logins, or browser extensions are required. The entire TikTok extraction runs securely within your desktop or mobile browser to preserve digital safety."
+      },
+      {
+        question: "Is there a limit on how many TikTok downloads I can make?",
+        answer: "We offer completely unlimited extractions. Download as many trending TikToks as you need without premium accounts or hidden fees."
+      }
+    ],
+    faqItemsInstagram: [
+      {
+        question: "How do I download a video or reel from Instagram?",
+        answer: "Simply navigate to Instagram, copy the link of the reel, video, or photo slideshow, paste it into our address bar above, and click 'Download' to instantly generate high-quality download links."
+      },
+      {
+        question: "Can I save Instagram Reels and videos without watermarks?",
+        answer: "Yes, our Instagram downloader directly fetches raw files from public CDN sources so there are absolutely no watermarks or platform brand overlays added to the media."
+      },
+      {
+        question: "Does it support saving photos, posts, and carousel items?",
+        answer: "Yes, our extraction system is capable of detecting and downloading single image posts, video posts, and side-scrollable multi-photo carousel slides."
+      },
+      {
+        question: "Do I need to authenticate or log in with my Instagram account?",
+        answer: "No! We never ask for your Instagram password or login credentials. You can safely download public reels and posts without sharing account info."
+      },
+      {
+        question: "Are Instagram audio extract formats supported?",
+        answer: "Yes, our platform lets you isolate and download only the background music of Reels or IGTV uploads, saved in a standard high-bitrate MP3/M4A format."
+      }
+    ],
+    disclaimerHeader: "Disclaimer:",
+    disclaimerText: "This application is a tool for personal backup archiving and media exploration. We are not allied or officially affiliated with TikTok, ByteDance, Instagram, Meta, or any related social media networks. Brand copyrights belong entirely to their respective media owners. Always respect digital intellectual property rules before repurposing content.",
+    copyrightText: "© 2026 SaveKlip Systems. Realized in compliance with high performance web protocols.",
+    detectedAlert: "Language automatically changed based on your region preference:"
+  },
+  "en-gb": {
+    downloadsToday: "Downloads Today",
+    themeLight: "Switch to Light Mode",
+    themeDark: "Switch to Dark Mode",
+    home: "Home",
+    tiktokDownloader: "TikTok Downloader",
+    instagramDownloader: "Instagram Downloader",
+    blog: "Blog",
+    aboutUs: "About Us",
+    contactUs: "Contact Us",
+    privacyPolicy: "Privacy Policy",
+    termsOfService: "Terms of Service",
+    dmcaPolicy: "DMCA Policy",
+    zeroWatermarks: "Zero Watermarks",
+    heroTitleHome: "Save High-Quality TikTok & Instagram Videos",
+    heroTitleTikTok: "Save High-Quality TikTok Videos",
+    heroTitleInstagram: "Save High-Quality Instagram Videos",
+    heroDescHome: "Easily download your favourite TikTok videos and Instagram reels in high quality. No sign-ups, no watermarks, and completely free.",
+    heroDescTikTok: "Save your favourite TikTok videos directly to your device stream-free and watermark-free. No sign-ups, no installation, and completely free.",
     heroDescInstagram: "Download Reels, profile videos, and photo posts from Instagram in pristine visual quality. No sign-ups, no watermarks, and completely free.",
     pasteLabel: "Paste Video URL Link",
     placeholderHome: "https://tiktok.com/... or https://instagram.com/reel/...",
@@ -1694,5 +1840,797 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     disclaimerText: "Это приложение — инструмент для создания резервных копий и просмотра медиа материалов в личных целях. Мы не связаны коммерчески или официально с TikTok, ByteDance, Instagram, Meta, или другими связанными социальными сетями. Права на товарные знаки принадлежат их законным правообладателям. Всегда уважайте ценность авторских прав.",
     copyrightText: "© 2026 SaveKlip Systems. Разработано в соответствии с протоколами высоконагруженных веб-сетей.",
     detectedAlert: "Язык интерфейса был автоматически адаптирован на основе вашей геолокации/браузера:"
+  },
+  it: {
+    downloadsToday: "Download di oggi",
+    themeLight: "Passa alla modalità chiara",
+    themeDark: "Passa alla modalità scura",
+    home: "Home",
+    tiktokDownloader: "Downloader di TikTok",
+    instagramDownloader: "Downloader di Instagram",
+    blog: "Blog",
+    aboutUs: "Chi siamo",
+    contactUs: "Contattaci",
+    privacyPolicy: "Informativa sulla privacy",
+    termsOfService: "Termini di servizio",
+    dmcaPolicy: "Politica DMCA",
+    zeroWatermarks: "Senza filigrana",
+    heroTitleHome: "Salva video TikTok e Instagram in alta qualità",
+    heroTitleTikTok: "Salva video di TikTok in alta qualità",
+    heroTitleInstagram: "Salva video di Instagram in alta qualità",
+    heroDescHome: "Scarica facilmente i tuoi video TikTok e reel Instagram preferiti in alta qualità. Nessuna registrazione, senza filigrana e completamente gratuito.",
+    heroDescTikTok: "Salva i tuoi video TikTok preferiti direttamente sul tuo dispositivo senza filigrana. Nessuna registrazione o installazione, completamente gratuito.",
+    heroDescInstagram: "Scarica Reel, video del profilo e foto da Instagram in qualità visiva eccezionale. Senza filigrana, nessuna registrazione, completamente gratuito.",
+    pasteLabel: "Incolla il link URL del video",
+    placeholderHome: "https://tiktok.com/... o https://instagram.com/reel/...",
+    placeholderTikTok: "https://www.tiktok.com/@username/video/7123456...",
+    placeholderInstagram: "https://www.instagram.com/reel/Ct12345...",
+    clearLabel: "Cancella link",
+    downloadBtn: "Scarica",
+    extractingBtn: "Estrazione media...",
+    validationErrorEmpty: "Inserisci prima un URL TikTok o Instagram valido",
+    validationErrorInvalid: "Inserisci un link video TikTok o Instagram valido",
+    skeletonText: "Estrazione dettagli file...",
+    platformDetected: "rilevato",
+    extractId: "ID estrazione:",
+    downloadAnother: "Scarica un altro video",
+    livePreview: "Anteprima HD in tempo reale",
+    views: "Visualizzazioni",
+    likes: "Mi piace",
+    comments: "Commenti",
+    shares: "Condivisioni",
+    durationLabel: "Durata",
+    proHDBadge: "Pro HD",
+    mp4Format: "Formato MP4",
+    downloadVideoBtn: "Scarica Video",
+    savedLabel: "Salvato",
+    finishedLabel: "Finito!",
+    audioMP3Label: "audio (MP3)",
+    audioMP3Desc: "Audio ad alta qualità",
+    getMP3AudioBtn: "Ottieni audio MP3",
+    sslSecureLabel: "Collegamenti SSL crittografati verificati • Bypass sicuro del server di origine diretta",
+    capabilitiesTitleTikTok: "Funzionalità downloader TikTok",
+    capabilitiesTitleInstagram: "Funzionalità downloader Instagram",
+    capabilitiesTitleGeneral: "Funzionalità delle piattaforme supportate",
+    tiktokCap1: "Scarica post TikTok illimitati senza filigrana",
+    tiktokCap2: "Estrai tracce di sottofondo e audio nativamente",
+    tiktokCap3: "Estrai diverse risoluzioni (HD disponibile)",
+    tiktokCap4: "Elaborazione istantanea senza barriere per il client",
+    instagramCap1: "Estrai Reel, Post e caroselli rapidamente",
+    instagramCap2: "Download CDN diretto che preserva la massima qualità",
+    instagramCap3: "Estrazione dinamica MP3 per clip audio dei reel",
+    instagramCap4: "Evita in sicurezza l'accesso e i token di sicurezza",
+    faqTitle: "Domande frequenti (FAQ)",
+    faqSubtitle: "Tutto ciò che c'è da sapere su filigrane, limiti di velocità di download e sicurezza dei file.",
+    faqItemsHome: [
+      {
+        question: "Come scarico un video da TikTok o Instagram?",
+        answer: "Copia l'URL del video, del reel o del post su TikTok o Instagram, incollalo nella barra sopra e fai clic su 'Scarica'. Scegli la qualità e scarica!"
+      },
+      {
+        question: "I video scaricati sono privi di filigrana?",
+        answer: "Sì, il nostro sistema estrae i file originali direttamente dai server CDN, quindi i video sono al 100% senza filigrana."
+      },
+      {
+        question: "Quali formati e qualità sono supportati?",
+        answer: "Supportiamo file video HD fino a 1080p, qualità compresse per connessione ridotta (720p, 480p, 360p) ed estrazione audio diretta ad alta fedeltà in formato MP3."
+      },
+      {
+        question: "Devo registrarmi per scaricare?",
+        answer: "No, non è richiesta alcuna registrazione o installazione di software. Tutto avviene in modo sicuro all'interno del tuo browser."
+      },
+      {
+        question: "C'è un limite al numero di download?",
+        answer: "Offriamo download completamente illimitati! Applichiamo solo un leggero limite di sicurezza di 15 richieste al minuto per proteggere i server."
+      }
+    ],
+    faqItemsTikTok: [
+      {
+        question: "Come si scarica un video da TikTok?",
+        answer: "Copia l'URL del video da TikTok, incollalo sopra e clicca su scarica. Seleziona il formato video o audio preferito."
+      },
+      {
+        question: "I video di TikTok sono senza filigrana?",
+        answer: "Sì, l'estrattore scarica direttamente lo stream originale privo di qualsiasi logo o marchio ad esso applicato."
+      },
+      {
+        question: "Posso scaricare tracce audio o musica da TikTok?",
+        answer: "Sì! Puoi scegliere di estrarre e convertire la traccia audio in formato MP3 ad alta definizione."
+      },
+      {
+        question: "È sicuro scaricare video di TikTok qui?",
+        answer: "Sicurissimo. L'importazione e la conversione vengono gestite nei nostri server sicuri senza richiedere credenziali o estensioni browser."
+      },
+      {
+        question: "Ci sono limiti di download giornalieri?",
+        answer: "Nessun limite. Puoi scaricare quanti TikTok desideri in modo completamente gratuito."
+      }
+    ],
+    faqItemsInstagram: [
+      {
+        question: "Come scaricare reel o video da Instagram?",
+        answer: "Copia il link del reel o del post di Instagram, incollalo sopra e il sistema genererà all'istante i collegamenti diretti per il download."
+      },
+      {
+        question: "È possibile salvare i Reel senza filigrana?",
+        answer: "Sì, il downloader ottiene il file sorgente dal CDN pubblico di Instagram mantenendone intatta l'alta qualità visiva."
+      },
+      {
+        question: "Supporta caroselli, foto e post singoli?",
+        answer: "Sì, il nostro sistema è strutturato per estrarre caroselli multi-foto, foto singole e post video."
+      },
+      {
+        question: "È necessario inserire le password di Instagram?",
+        answer: "Assolutamente no. Non ti chiederemo mai nessuna credenziale. Puoi scaricare liberamente da tutti i profili pubblici."
+      },
+      {
+        question: "Posso convertire i Reel in file audio MP3?",
+        answer: "Sì, puoi isolare la musica e gli effetti sonori dei Reel desiderati e scaricarli direttamente in formato MP3."
+      }
+    ],
+    disclaimerHeader: "Dichiarazione di non responsabilità:",
+    disclaimerText: "Questa applicazione è uno strumento per l'archiviazione di backup personale dei file multimediali. Non siamo affiliati né associati ufficialmente a TikTok, ByteDance, Instagram, Meta o altri social network correlati. I diritti d'autore appartengono interamente ai rispettivi proprietari. Rispetta sempre le leggi sulla proprietà intellettuale prima di riutilizzare i contenuti.",
+    copyrightText: "© 2026 SaveKlip Systems. Sviluppato in conformità con i protocolli web ad alte prestazioni.",
+    detectedAlert: "Lingua cambiata automaticamente in base alle tue preferenze:"
+  },
+  tr: {
+    downloadsToday: "Bugün İndirilenler",
+    themeLight: "Açık Moduna Geç",
+    themeDark: "Karanlık Moduna Geç",
+    home: "Ana Sayfa",
+    tiktokDownloader: "TikTok İndirici",
+    instagramDownloader: "Instagram İndirici",
+    blog: "Blog",
+    aboutUs: "Hakkımızda",
+    contactUs: "İletişim",
+    privacyPolicy: "Gizlilik Politikası",
+    termsOfService: "Kullanım Koşulları",
+    dmcaPolicy: "DMCA Politikası",
+    zeroWatermarks: "Filigransız",
+    heroTitleHome: "TikTok ve Instagram Videolarını Yüksek Kalitede İndirin",
+    heroTitleTikTok: "TikTok Videolarını Yüksek Kalitede İndirin",
+    heroTitleInstagram: "Instagram Videolarını Yüksek Kalitede İndirin",
+    heroDescHome: "En sevdiğiniz TikTok videolarını ve Instagram reels videolarını yüksek kalitede kolayca indirin. Üye olmak yok, filigran yok ve tamamen ücretsiz.",
+    heroDescTikTok: "Favori TikTok videolarınızı filigransız olarak doğrudan cihazınıza indirin. Kayıt yok, kurulum yok ve tamamen ücretsiz.",
+    heroDescInstagram: "Instagram Reels, profil videoları ve fotoğraf gönderilerini mükemmel kalitede kaydedin. Filigran yok, kayıt yok, tamamen ücretsiz.",
+    pasteLabel: "Video Linkini Yapıştırın",
+    placeholderHome: "https://tiktok.com/... veya https://instagram.com/reel/...",
+    placeholderTikTok: "https://www.tiktok.com/@kullanici/video/7123456...",
+    placeholderInstagram: "https://www.instagram.com/reel/Ct12345...",
+    clearLabel: "Bağlantıyı temizle",
+    downloadBtn: "İndir",
+    extractingBtn: "Medya Ayrıştırılıyor...",
+    validationErrorEmpty: "Lütfen önce geçerli bir TikTok veya Instagram URL'si girin",
+    validationErrorInvalid: "Lütfen geçerli bir TikTok veya Instagram video bağlantısı girin",
+    skeletonText: "Medya Detayları Çözümleniyor...",
+    platformDetected: "algılandı",
+    extractId: "Ayrıştırma Kimliği:",
+    downloadAnother: "Başka bir video indir",
+    livePreview: "Canlı HD Önizleme",
+    views: "Görüntülenme",
+    likes: "Beğeni",
+    comments: "Yorum",
+    shares: "Paylaşım",
+    durationLabel: "Süre",
+    proHDBadge: "Pro HD",
+    mp4Format: "MP4 formatı",
+    downloadVideoBtn: "Videoyu İndir",
+    savedLabel: "Kaydedildi",
+    finishedLabel: "Tamamlandı!",
+    audioMP3Label: "Ses (MP3)",
+    audioMP3Desc: "Yüksek Kaliteli Ses",
+    getMP3AudioBtn: "MP3 Sesi Al",
+    sslSecureLabel: "Şifrelenmiş SSL indirme bağlantıları doğrulandı • Güvenli doğrudan kaynak sunucu bağlantısı",
+    capabilitiesTitleTikTok: "TikTok İndirici Yetenekleri",
+    capabilitiesTitleInstagram: "Instagram İndirici Yetenekleri",
+    capabilitiesTitleGeneral: "Desteklenen Platform Özellikleri",
+    tiktokCap1: "Sınırsız sayıda TikTok gönderisini filigransız indirin",
+    tiktokCap2: "Arka plan müziklerini ve sesleri doğrudan ayrıştırın",
+    tiktokCap3: "Farklı çözünürlüklerde indirme imkanı (HD mevcut)",
+    tiktokCap4: "İstemci sınırlarını aşan anında işlem hızı",
+    instagramCap1: "Reels, Gönderi ve Çoklu fotoğrafları hızlıca çekin",
+    instagramCap2: "En yüksek bit hızını koruyan doğrudan CDN indirmeleri",
+    instagramCap3: "Reels ses klipleri için dinamik MP3 dönüştürme",
+    instagramCap4: "Giriş engellerini ve güvenlik tokenlerini güvenle aşın",
+    faqTitle: "Sıkça Sorulan Sorular",
+    faqSubtitle: "Filigranlar, indirme hızı limitleri ve dosya güvenliği hakkında bilmeniz gereken her şey.",
+    faqItemsHome: [
+      {
+        question: "TikTok veya Instagram'dan nasıl video indirebilirim?",
+        answer: "TikTok veya Instagram'dan indirmek istediğiniz videonun linkini kopyalayın, yukarıdaki alana yapıştırın ve 'İndir' butonuna basın. Tercih ettiğiniz kaliteyi seçerek indirin!"
+      },
+      {
+        question: "İndirilen videolar filigransız mı?",
+        answer: "Evet, servisimiz orijinal sunuculardan doğrudan indirme bağlantılarını çeker, bu sayede videolar %100 filigransız ve orijinal kalitededir."
+      },
+      {
+        question: "Hangi formatlar ve kaliteler destekleniyor?",
+        answer: "1080p çözünürlüğe kadar yüksek çözünürlüklü video dosyalarını, düşük bant genişlikleri için sıkıştırılmış alternatifleri (720p, 480p) ve ses ayıklama için MP3 formatını destekliyoruz."
+      },
+      {
+        question: "Hesap oluşturmam veya giriş yapmam gerekiyor mu?",
+        answer: "Hayır, herhangi bir kayıt işlemi veya program yükleme zorunluluğu yoktur. Tüm süreç tarayıcınız üzerinden güvenle yürütülür."
+      },
+      {
+        question: "İndirme sayısı için bir sınır var mı?",
+        answer: "Sınırsız indirme sunuyoruz! Sadece sunucu sağlığını korumak amacıyla dakikada 15 istek gibi hafif bir limit uygulanmaktadır."
+      }
+    ],
+    faqItemsTikTok: [
+      {
+        question: "TikTok videosu nasıl indirilir?",
+        answer: "TikTok uygulamasından video linkini kopyalayın, buraya yapıştırın ve indirmeyi başlatın. Tercih ettiğiniz video veya ses formatını seçebilirsiniz."
+      },
+      {
+        question: "TikTok videoları gerçekten filigransız mı?",
+        answer: "Evet, geliştirdiğimiz altyapı, TikTok üzerindeki orijinal raw video dosyasını çektiği için üzerinde hiçbir logo bulunmaz."
+      },
+      {
+        question: "TikTok videolarının seslerini MP3 olarak indirebilir miyim?",
+        answer: "Evet! Arka plandaki tüm müzikleri veya sesleri yüksek kalitede MP3 dosyası olarak ayrıştırıp cihazınıza kaydedebilirsiniz."
+      },
+      {
+        question: "TikTok videoları indirmek güvenli midir?",
+        answer: "Kesinlikle güvenlidir. Herhangi bir tarayıcı eklentisi yüklemeniz gerekmez, her şey güvenli sunucularımızda otomatik işlenir."
+      },
+      {
+        question: "Günlük indirme kotası var mı?",
+        answer: "Herhangi bir günlük sınırımız yoktur. Dilediğiniz kadar TikTok videosunu tamamen bedava indirebilirsiniz."
+      }
+    ],
+    faqItemsInstagram: [
+      {
+        question: "Instagram Reels veya paylaşımları nasıl indirilir?",
+        answer: "Instagram'daki video veya reels URL'sini kopyalayıp sistemimize yapıştırın. Sistem anında size direkt indirme bağlantılarını sunacaktır."
+      },
+      {
+        question: "Instagram Reels videolarını filigransız indirmek ücretsiz mi?",
+        answer: "Evet, tamamen ücretsizdir. Instagram'ın CDN dağıtım sunucularındaki orijinal dosyaya doğrudan ulaşmanızı sağlıyoruz."
+      },
+      {
+        question: "Çoklu fotoğraf (Kaydırmalı Gönderi) desteği var mı?",
+        answer: "Evet, sistemimiz tekli fotoğraflar, videolar ve kaydırmalı çoklu fotoğraf albümleri dahil tüm gönderi türlerini destekler."
+      },
+      {
+        question: "Instagram hesap şifremi girmem gerekir mi?",
+        answer: "Asla hesap bilgilerinizi istemeyiz. Herkesin erişimine açık genel hesaplardaki paylaşımları giriş yapmadan indirebilirsiniz."
+      },
+      {
+        question: "Reels videolarının müziklerini MP3 yapabilir miyim?",
+        answer: "Evet, reels videolarındaki sesleri doğrudan ayıklayıp MP3 formatında müzik dosyası olarak indirebilirsiniz."
+      }
+    ],
+    disclaimerHeader: "Sorumluluk Reddi:",
+    disclaimerText: "Bu uygulama, kişisel yedekleme arşivleme ve medya geliştirme amaçlı bir araçtır. TikTok, ByteDance, Instagram, Meta veya diğer ilgili sosyal medya kuruluşları ile hiçbir resmi bağımız bulunmamaktadır. Tüm telif hakları ilgili sahiplerine aittir. İçerikleri kullanmadan önce dijital fikri mülkiyet haklarına uymaya özen gösteriniz.",
+    copyrightText: "© 2026 SaveKlip Systems. Yüksek performanslı web protokollerine uyumlu gerçekleştirilmiştir.",
+    detectedAlert: "Dil tercihiniz algılanarak otomatik olarak değiştirildi:"
+  },
+  id: {
+    downloadsToday: "Unduhan Hari Ini",
+    themeLight: "Ganti ke Mode Terang",
+    themeDark: "Ganti ke Mode Gelap",
+    home: "Beranda",
+    tiktokDownloader: "Pengunduh TikTok",
+    instagramDownloader: "Pengunduh Instagram",
+    blog: "Blog",
+    aboutUs: "Tentang Kami",
+    contactUs: "Hubungi Kami",
+    privacyPolicy: "Kebijakan Privasi",
+    termsOfService: "Ketentuan Layanan",
+    dmcaPolicy: "Kebijakan DMCA",
+    zeroWatermarks: "Tanpa Watermark",
+    heroTitleHome: "Simpan Video TikTok & Instagram Kualitas Tinggi",
+    heroTitleTikTok: "Simpan Video TikTok Kualitas Tinggi",
+    heroTitleInstagram: "Simpan Video Instagram Kualitas Tinggi",
+    heroDescHome: "Unduh video TikTok dan reels Instagram favorit Anda dengan kualitas tinggi. Tanpa daftar, tanpa watermark, dan 100% gratis.",
+    heroDescTikTok: "Simpan video TikTok favorit Anda langsung ke perangkat Anda tanpa watermark. Tanpa perlu daftar atau instal aplikasi apa pun, 100% gratis.",
+    heroDescInstagram: "Unduh Reels, video profil, dan foto Instagram dengan resolusi terbaik. Tanpa watermark, tanpa daftar, dan 100% gratis.",
+    pasteLabel: "Tempel Tautan URL Video",
+    placeholderHome: "https://tiktok.com/... atau https://instagram.com/reel/...",
+    placeholderTikTok: "https://www.tiktok.com/@username/video/7123456...",
+    placeholderInstagram: "https://www.instagram.com/reel/Ct12345...",
+    clearLabel: "Bersihkan link",
+    downloadBtn: "Unduh",
+    extractingBtn: "Mengekstrak Media...",
+    validationErrorEmpty: "Silakan masukkan tautan URL TikTok atau Instagram yang valid terlebih dahulu",
+    validationErrorInvalid: "Silakan masukkan tautan video TikTok atau Instagram yang valid",
+    skeletonText: "Mengekstrak Detail Media...",
+    platformDetected: "terdeteksi",
+    extractId: "ID Ekstraksi:",
+    downloadAnother: "Unduh video lain",
+    livePreview: "Pratinjau HD Langsung",
+    views: "Dilihat",
+    likes: "Suka",
+    comments: "Komentar",
+    shares: "Dibagikan",
+    durationLabel: "Durasi",
+    proHDBadge: "Pro HD",
+    mp4Format: "Format MP4",
+    downloadVideoBtn: "Unduh Video",
+    savedLabel: "Disimpan",
+    finishedLabel: "Selesai!",
+    audioMP3Label: "Audio (MP3)",
+    audioMP3Desc: "Audio Kualitas Tinggi",
+    getMP3AudioBtn: "Dapatkan Audio MP3",
+    sslSecureLabel: "Tautan unduhan SSL terenkripsi terverifikasi • Bypass aman server asal langsung",
+    capabilitiesTitleTikTok: "Kemampuan Pengunduh TikTok",
+    capabilitiesTitleInstagram: "Kemampuan Pengunduh Instagram",
+    capabilitiesTitleGeneral: "Kemampuan Platform yang Didukung",
+    tiktokCap1: "Unduh kiriman TikTok tanpa batasan tanpa watermark",
+    tiktokCap2: "Ekstrak musik latar belakang dan audio asli secara instan",
+    tiktokCap3: "Ekstrak ke berbagai resolusi target (Tersedia HD)",
+    tiktokCap4: "Proses cepat langsung tanpa hambatan pada klien",
+    instagramCap1: "Ekstrak Reels, Foto, dan Carousel dengan cepat",
+    instagramCap2: "Unduh langsung via CDN untuk mempertahankan kualitas terbaik",
+    instagramCap3: "Ekstraksi MP3 dinamis untuk klip suara di reels",
+    instagramCap4: "Lewati login pakan atau token keamanan dengan aman",
+    faqTitle: "Pertanyaan yang Sering Diajukan",
+    faqSubtitle: "Semua hal yang perlu Anda ketahui tentang watermark, batas kecepatan unduhan, dan keamanan file.",
+    faqItemsHome: [
+      {
+        question: "Bagaimana cara mengunduh video dari TikTok atau Instagram?",
+        answer: "Cukup salin URL video, reel, atau postingan di TikTok atau Instagram, tempel di kolom atas, dan klik 'Unduh'. Pilih kualitas yang Anda inginkan lalu klik Unduh!"
+      },
+      {
+        question: "Apakah video hasil unduhan bebas watermark?",
+        answer: "Ya, sistem kami mengekstrak file video asli langsung dari jaringan pengiriman konten (CDN), memastikan video bersih tanpa watermark."
+      },
+      {
+        question: "Format dan kualitas apa saja yang didukung?",
+        answer: "Kami mendukung kualitas video definisi tinggi hingga 1080p, serta format kompresi (720p, 480p) untuk menghemat kuota, dan ekstraksi audio MP3 kualitas tinggi."
+      },
+      {
+        question: "Apakah saya harus mendaftar akun terlebih dahulu?",
+        answer: "Tidak perlu membuat akun atau memasang perangkat lunak eksternal apa pun. Semua proses berjalan langsung di web browser Anda secara aman."
+      },
+      {
+        question: "Apakah ada batasan jumlah file yang bisa diunduh?",
+        answer: "Kami menyediakan unduhan tanpa batas! Hanya ada batasan ringan sebanyak 15 permintaan per menit demi menjaga keandalan server kami."
+      }
+    ],
+    faqItemsTikTok: [
+      {
+        question: "Bagaimana cara mengunduh video dari TikTok?",
+        answer: "Salin link video dari TikTok, tempelkan di atas, dan klik unduh. Pilih opsi kualitas video atau audio yang sesuai."
+      },
+      {
+        question: "Apakah video TikTok bebas dari watermark?",
+        answer: "Ya, pengunduh kami menarik data video mentah asli sehingga bersih tanpa logo TikTok yang bergerak."
+      },
+      {
+        question: "Dapatkah saya mengunduh lagu atau audio mp3 dari TikTok?",
+        answer: "Tentu saja! Anda bisa mengisolasi rekaman suara latar belakang video dan menyimpannya sebagai file format MP3."
+      },
+      {
+        question: "Apakah aman memakai situs ini untuk mengunduh?",
+        answer: "Sangat aman. Kami tidak memerlukan kredensial akun Anda, dan Anda pun tidak harus menginstal ekstensi browser yang mencurigakan."
+      },
+      {
+        question: "Apakah ada batas limit harian?",
+        answer: "Tidak ada limit harian sama sekali. Anda bebas mengunduh video TikTok sebanyak mungkin, gratis."
+      }
+    ],
+    faqItemsInstagram: [
+      {
+        question: "Bagaimana cara mengunduh Reels atau postingan Instagram?",
+        answer: "Salin link dari Instagram, masukkan ke kolom input di atas, dan sistem kami akan langsung menyusun link unduhan aslinya."
+      },
+      {
+        question: "Apakah gratis mengunduh Reels Instagram?",
+        answer: "Ya, sepenuhnya gratis. Kami mengambil file langsung dari peladen distribusi resmi tanpa mengenakan biaya apa pun."
+      },
+      {
+        question: "Apakah mendukung postingan berbentuk Carousel (banyak foto)?",
+        answer: "Ya, ekstraktor kami mampu melacak dan mengunduh postingan carousel, foto tunggal, maupun video feed biasa."
+      },
+      {
+        question: "Apakah saya perlu memasukkan sandi Instagram saya?",
+        answer: "Tidak. Kami tidak pernah meminta data sandi Anda. Anda dapat mengunduh konten dari profil yang disetel publik secara langsung."
+      },
+      {
+        question: "Bisakah mengunduh bagian lagu saja di Reels?",
+        answer: "Bisa, Anda tinggal memilih format audio saja pada hasil deteksi, lalu ekstrak sebagai lagu MP3 kualitas tinggi."
+      }
+    ],
+    disclaimerHeader: "Sanggahan:",
+    disclaimerText: "Aplikasi ini merupakan alat bantu untuk membuat salinan cadangan pribadi dan eksplorasi media. Kami tidak memiliki hubungan resmi maupun berafiliasi dengan TikTok, ByteDance, Instagram, Meta, atau jejaring sosial terkait lainnya. Hak cipta merek dagang sepenuhnya dipegang oleh pemilih masing-masing. Harap selalu hormati hak atas kekayaan intelektual sebelum membagikan ulang kiriman.",
+    copyrightText: "© 2026 SaveKlip Systems. Dihadirkan sesuai protokol web berkinerja tinggi.",
+    detectedAlert: "Bahasa otomatis diubah berdasarkan preferensi wilayah Anda:"
+  },
+  vi: {
+    downloadsToday: "Lượt tải hôm nay",
+    themeLight: "Chuyển sang Chế độ sáng",
+    themeDark: "Chuyển sang Chế độ tối",
+    home: "Trang chủ",
+    tiktokDownloader: "Tải video TikTok",
+    instagramDownloader: "Tải video Instagram",
+    blog: "Blog",
+    aboutUs: "Giới thiệu",
+    contactUs: "Liên hệ",
+    privacyPolicy: "Chính sách bảo mật",
+    termsOfService: "Điều khoản dịch vụ",
+    dmcaPolicy: "Chính sách DMCA",
+    zeroWatermarks: "Không logo/watermark",
+    heroTitleHome: "Tải video TikTok & Instagram chất lượng cao",
+    heroTitleTikTok: "Tải video TikTok chất lượng cao",
+    heroTitleInstagram: "Tải video Instagram chất lượng cao",
+    heroDescHome: "Dễ dàng tải về các video TikTok và reels Instagram yêu thích với chất lượng cao nhất. Không cần đăng ký, không dính logo watermark và hoàn toàn miễn phí.",
+    heroDescTikTok: "Lưu trữ video TikTok yêu thích trực tiếp về thiết bị không dính logo. Không cần đăng ký tài khoản hoặc cài đặt phần mềm khác.",
+    heroDescInstagram: "Tải Reels, bài viết và ảnh Instagram với chất lượng tuyệt đỉnh. Không watermark, không đăng ký tài khoản, tải miễn phí.",
+    pasteLabel: "Dán đường dẫn URL của video",
+    placeholderHome: "https://tiktok.com/... hoặc https://instagram.com/reel/...",
+    placeholderTikTok: "https://www.tiktok.com/@username/video/7123456...",
+    placeholderInstagram: "https://www.instagram.com/reel/Ct12345...",
+    clearLabel: "Xóa liên kết",
+    downloadBtn: "Tải xuống",
+    extractingBtn: "Đang phân tích...",
+    validationErrorEmpty: "Vui lòng nhập một đường link TikTok hoặc Instagram hợp lệ trước",
+    validationErrorInvalid: "Vui lòng nhập một liên kết video TikTok hoặc Instagram hợp lệ",
+    skeletonText: "Đang truy xuất thông tin tệp tin...",
+    platformDetected: "đã phát hiện",
+    extractId: "ID phân tích:",
+    downloadAnother: "Tải thêm video khác",
+    livePreview: "Xem trước HD trực tiếp",
+    views: "Lượt xem",
+    likes: "Lượt thích",
+    comments: "Bình luận",
+    shares: "Chia sẻ",
+    durationLabel: "Thời lượng",
+    proHDBadge: "Pro HD",
+    mp4Format: "Định dạng MP4",
+    downloadVideoBtn: "Tải Video xuống",
+    savedLabel: "Đã lưu",
+    finishedLabel: "Hoàn tất!",
+    audioMP3Label: "Âm thanh (MP3)",
+    audioMP3Desc: "Nhạc chất lượng cao",
+    getMP3AudioBtn: "Tải nhạc MP3",
+    sslSecureLabel: "Các liên kết tải xuống đã được mã hóa SSL an toàn • Máy chủ gốc trực tiếp",
+    capabilitiesTitleTikTok: "Tính năng tải TikTok",
+    capabilitiesTitleInstagram: "Tính năng tải Instagram",
+    capabilitiesTitleGeneral: "Các nền tảng được hỗ trợ tốt nhất",
+    tiktokCap1: "Tải không giới hạn các bài đăng TikTok không dính logo",
+    tiktokCap2: "Trích xuất bài hát nền và âm thanh chất lượng gốc",
+    tiktokCap3: "Nhiều độ phân giải khác nhau để tải tùy chọn (Có HD)",
+    tiktokCap4: "Xử lý tức thì không bị chặn bởi các rào cản ứng dụng",
+    instagramCap1: "Tải nhanh Reels, Bài viết ảnh và các bộ ảnh Carousel",
+    instagramCap2: "Liên kết tải CDN trực tiếp cho tập tin chất lượng cao nhất",
+    instagramCap3: "Trích xuất MP3 nhanh cho tất cả các bản nhạc trong Reels",
+    instagramCap4: "Vượt qua các bước bắt buộc đăng nhập tài khoản an toàn",
+    faqTitle: "Các câu hỏi thường gặp",
+    faqSubtitle: "Mọi thông tin liên quan đến bản quyền watermark, tốc độ tải và độ an toàn của dữ liệu.",
+    faqItemsHome: [
+      {
+        question: "Làm thế nào để tải video từ TikTok hoặc Instagram?",
+        answer: "Chỉ cần truy cập TikTok hoặc Instagram, sao chép liên kết của video cần tải, dán vào thanh công cụ ở trên rồi nhấn nút 'Tải xuống'. Lựa chọn chất lượng video bạn cần và tải về máy!"
+      },
+      {
+        question: "Video được tải xuống có dính logo watermark không?",
+        answer: "Không, toàn bộ hệ thống của chúng tôi lấy tệp tin gốc trực tiếp từ hệ thống CDN của nền tảng, đảm bảo video tải về sạch 100% không dính logo mờ."
+      },
+      {
+        question: "Những định dạng và chất lượng nào được hỗ trợ?",
+        answer: "Chúng tôi hỗ trợ tập tin HD lên tới 1080p, cũng như định dạng nén tối ưu (720p, 480p) để tiết kiệm dữ liệu mạng, và trích xuất nhạc chất lượng cao định dạng MP3."
+      },
+      {
+        question: "Tôi có cần phải đăng ký tài khoản để sử dụng không?",
+        answer: "Không cần đăng ký bất kỳ tài khoản hay tiện ích mở rộng trình duyệt nào. Mọi tác vụ được xử lý trực tiếp trên trình duyệt của bạn một cách bảo mật."
+      },
+      {
+        question: "Có giới hạn số lượng video được phép tải xuống không?",
+        answer: "Dịch vụ của chúng tôi hoàn toàn miễn phí và không giới hạn! Chúng tôi chỉ áp đặt giới hạn bảo vệ máy chủ nhẹ ở mức 15 lượt tải mỗi phút để duy trì tốc độ ổn định."
+      }
+    ],
+    faqItemsTikTok: [
+      {
+        question: "Làm thế nào để tải xuống video từ TikTok?",
+        answer: "Thực hiện sao chép liên kết video TikTok cần tải, dán vào thanh tìm kiếm phía trên rồi chọn chất lượng video hoặc định dạng âm thanh tùy thích."
+      },
+      {
+        question: "Video TikTok tải về có thực sự không dính logo?",
+        answer: "Chính xác, hệ thống tải tệp video thô nguyên bản từ máy chủ chính nên hoàn toàn không bị dính biểu tượng chuyển động của TikTok."
+      },
+      {
+        question: "Tôi có thể tải nhạc nền hoặc âm thanh từ bài đăng TikTok không?",
+        answer: "Có! Bạn chọn phần tải xuống âm thanh để trích xuất bài hát nền trực tiếp sang định dạng nghe nhạc MP3 độ phân giải cao."
+      },
+      {
+        question: "Sử dụng công cụ này để tải video TikTok có an toàn không?",
+        answer: "Cực kỳ an toàn. Bạn không cần điền thông tin đăng nhập của mình, mọi kiểm tra tệp tin đều an tâm chạy trên hệ thống bảo mật của chúng tôi."
+      },
+      {
+        question: "Có rào cản hay giới hạn gì trong ngày không?",
+        answer: "Hoàn toàn miễn phí và không giới hạn số lượng video bạn muốn lưu trữ hàng ngày."
+      }
+    ],
+    faqItemsInstagram: [
+      {
+        question: "Làm sao để tải Reels hoặc ảnh từ Instagram?",
+        answer: "Sao chép liên kết bài viết từ Instagram dán trực tiếp vào công cụ ở trang chủ để hệ thống phân tích và chuẩn bị liên kết tải gốc tốc độ cao."
+      },
+      {
+        question: "Tải Reels từ Instagram có mất phí gì không?",
+        answer: "Sử dụng hoàn toàn miễn phí. Chúng tôi hỗ trợ tìm tệp nguồn từ liên kết công khai của mạng xã hội giúp bạn lưu dễ dàng."
+      },
+      {
+        question: "Có tải được bộ bài đăng chứa nhiều ảnh (Carousel) không?",
+        answer: "Có nhé, hệ thống tải được đầy đủ các bộ ảnh, ảnh đơn, video hay thước phim Reels thông thường."
+      },
+      {
+        question: "Tôi có cần nhập mật khẩu Instagram không?",
+        answer: "Tuyệt đối không cần cung cấp bất kỳ tài khoản hay mật khẩu cá nhân nào. Bạn tải được ngay từ các bài đăng công khai cực nhanh."
+      },
+      {
+        question: "Làm cách nào để chuyển đổi Reels Instagram sang file nhạc MP3?",
+        answer: "Bạn chọn tùy chọn tải âm thanh để hệ thống tách nhạc nền và tải về máy dưới dạng tệp MP3 tiện dụng."
+      }
+    ],
+    disclaimerHeader: "Tuyên bố miễn trừ trách nhiệm:",
+    disclaimerText: "Ứng dụng này là một công cụ hỗ trợ cho mục đích sao lưu cá nhân và trải nghiệm truyền thông trực tuyến. Chúng tôi không hoạt động liên thông hay liên kết chính thức với TikTok, ByteDance, Instagram, Meta, hoặc bất kỳ thương hiệu mạng xã hội nào khác. Toàn bộ bản quyền thương hiệu thuộc sở hữu hoàn toàn của các bên liên quan. Vui lòng tôn trọng quyền sở hữu trí tuệ trước khi chia sẻ lại nội dung.",
+    copyrightText: "© 2026 SaveKlip Systems. Phát triển và tối ưu theo tiêu chuẩn công nghệ web tốc độ cao.",
+    detectedAlert: "Ngôn ngữ đã tự động điều chỉnh phù hợp với vị trí của bạn:"
+  },
+  pl: {
+    downloadsToday: "Dzisiejsze pobrania",
+    themeLight: "Przełącz na tryb jasny",
+    themeDark: "Przełącz na tryb ciemny",
+    home: "Główna",
+    tiktokDownloader: "Pobieranie z TikTok",
+    instagramDownloader: "Pobieranie z Instagram",
+    blog: "Blog",
+    aboutUs: "O nas",
+    contactUs: "Kontakt",
+    privacyPolicy: "Polityka prywatności",
+    termsOfService: "Regulamin usług",
+    dmcaPolicy: "Zgłoszenia DMCA",
+    zeroWatermarks: "Bez znaków wodnych",
+    heroTitleHome: "Zapisuj filmy z TikToka i Instagrama w wysokiej jakości",
+    heroTitleTikTok: "Zapisuj filmy z TikToka w wysokiej jakości",
+    heroTitleInstagram: "Zapisuj filmy z Instagrama w wysokiej jakości",
+    heroDescHome: "Pobieraj z łatwością swoje ulubione filmy z TikToka oraz rolki z Instagrama. Bez rejestracji, bez znaków wodnych, w 100% darmowo.",
+    heroDescTikTok: "Zapisuj ulubione materiały z TikToka bezpośrednio na urządzeniu bez znaku wodnego. Brak rejestracji, brak instalacji programów, całkowicie bez opłat.",
+    heroDescInstagram: "Zapisuj Rolki, zdjęcia i posty z Instagrama w najwyższej jakości obrazu. Brak znaków wodnych, bez zakładania konta, darmowo.",
+    pasteLabel: "Wklej link URL do filmu",
+    placeholderHome: "https://tiktok.com/... lub https://instagram.com/reel/...",
+    placeholderTikTok: "https://www.tiktok.com/@nazwa_uzytkownika/video/7123456...",
+    placeholderInstagram: "https://www.instagram.com/reel/Ct12345...",
+    clearLabel: "Wyczyść link",
+    downloadBtn: "Pobierz",
+    extractingBtn: "Wyodrębnianie plików...",
+    validationErrorEmpty: "Wprowadź najpierw poprawny adres URL z TikToka lub Instagrama",
+    validationErrorInvalid: "Wprowadź poprawny link do filmu z TikToka lub Instagrama",
+    skeletonText: "Pobieranie szczegółów pliku...",
+    platformDetected: "wykryto",
+    extractId: "ID operacji:",
+    downloadAnother: "Pobierz kolejny film",
+    livePreview: "Podgląd na żywo HD",
+    views: "Wyświetlenia",
+    likes: "Polubienia",
+    comments: "Komentarze",
+    shares: "Udostępnienia",
+    durationLabel: "Czas trwania",
+    proHDBadge: "Pro HD",
+    mp4Format: "Format MP4",
+    downloadVideoBtn: "Pobierz wideo",
+    savedLabel: "Zapisano",
+    finishedLabel: "Gotowe!",
+    audioMP3Label: "Dźwięk (MP3)",
+    audioMP3Desc: "Ulubiona muzyka w wysokiej jakości",
+    getMP3AudioBtn: "Pobierz dźwięk MP3",
+    sslSecureLabel: "Połączenia szyfrowane SSL zweryfikowane • Bezpieczne pobieranie bezpośrednio ze źródła",
+    capabilitiesTitleTikTok: "Funkcje pobierania z TikToka",
+    capabilitiesTitleInstagram: "Funkcje pobierania z Instagrama",
+    capabilitiesTitleGeneral: "Wspierane platformy społecznościowe",
+    tiktokCap1: "Pobieraj nieograniczone posty z TikToka bez znaków wodnych",
+    tiktokCap2: "Wyodrębniaj ścieżki dźwiękowe bezpośrednio do formatu MP3",
+    tiktokCap3: "Pobieraj w wielu wersjach rozdzielczości (dostępne HD)",
+    tiktokCap4: "Błyskawiczne przetwarzanie omijające blokady regionalne",
+    instagramCap1: "Szybko pobieraj Rolki, Posty oraz galerie zdjęć",
+    instagramCap2: "Bezpośrednie ścieżki pobierania z sieci dystrybucji CDN",
+    instagramCap3: "Dynamiczna ekstrakcja audio dla fragmentów muzycznych",
+    instagramCap4: "Bezpieczne omijanie wymogu logowania do platformy",
+    faqTitle: "Często zadawane pytania (FAQ)",
+    faqSubtitle: "Wszystko, co musisz wiedzieć o znakach wodnych, limitach prędkości pobierania oraz bezpieczeństwie danych.",
+    faqItemsHome: [
+      {
+        question: "Jak pobrać film z TikToka lub Instagrama?",
+        answer: "Skopiuj link filmu, rolki lub wpisu z TikToka bądź Instagrama, wklej go na naszej stronie głównej i kliknij przycisk 'Pobierz'. Wybierz interesującą Cię jakość i gotowe!"
+      },
+      {
+        question: "Czy pobrane filmy posiadają znaki wodne?",
+        answer: "Nie, nasz system pobiera oryginalny plik bezpośrednio z serwerów CDN sieci społecznościowej, gwarantując brak jakichkolwiek znaków wodnych."
+      },
+      {
+        question: "Jakie formaty i jakości są obsługiwane?",
+        answer: "Obsługujemy pliki wideo o wysokiej rozdzielczości do 1080p, a także mniejsze skompresowane wersje (720p, 480p) oraz bezproblemowe pobieranie ścieżek dźwiękowych w formacie MP3."
+      },
+      {
+        question: "Czy muszę zakładać konto na stronie?",
+        answer: "Nie są wymagane żadne konta użytkownika ani instalacja dodatkowego oprogramowania. Całość działa w pełni bezpiecznie w Twojej przeglądarce."
+      },
+      {
+        question: "Czy istnieje limit pobierania plików?",
+        answer: "Oferujemy w pełni darmowe pobieranie bez limitów! Stosujemy jedynie drobny limit ochronny serwera na poziomie 15 zapytań na minutę."
+      }
+    ],
+    faqItemsTikTok: [
+      {
+        question: "Jak pobierać klipy z TikToka?",
+        answer: "Skopiuj link bezpośrednio w aplikacji TikTok, wklej go u nas i zatwierdź przyciskiem pobierania. Następnie wybierz format wideo lub muzyczny."
+      },
+      {
+        question: "Czy filmy z TikToka są rzeczywiście pobierane bez znaku wodnego?",
+        answer: "Tak, nasz silnik pobiera plik wideo przed nałożeniem wirującego logo firmy TikTok, dając Ci w pełni czysty materiał."
+      },
+      {
+        question: "Mogę pobrać muzykę z filmu z TikToka?",
+        answer: "Oczywiście! Możesz przekonwertować i wyodrębnić ścieżkę dźwiękową bezpośrednio do formatu MP3 w wysokiej jakości."
+      },
+      {
+        question: "Czy ta strona jest bezpieczna do pobierania?",
+        answer: "Tak. Nie wymagamy podawania żadnych haseł, cały proces pobierania zachodzi przy użyciu bezpiecznego interfejsu API."
+      },
+      {
+        question: "Czy napotkam dzienne limity?",
+        answer: "Nie, możesz pobierać dowolną ilość filmów w ciągu dnia całkowicie darmowo."
+      }
+    ],
+    faqItemsInstagram: [
+      {
+        question: "Jak pobrać Rolki (Reels) z Instagrama?",
+        answer: "Wklej link wpisu z serwisu Instagram na naszej stronie. System odnajdzie pliki źródłowe i wyświetli bezpośrednie odnośniki."
+      },
+      {
+        question: "Czy pobieranie plików z Instagrama jest darmowe?",
+        answer: "Tak, wszelkie funkcjonalności są całkowicie bezpłatne. Pobieramy pliki ze sprawdzonych publicznych serwerów CDN."
+      },
+      {
+        question: "Czy wspierane są posty karuzelowe (kilka zdjęć)?",
+        answer: "Tak, system doskonale radzi sobie z wyciąganiem całych serii zdjęć z postów typu karuzela."
+      },
+      {
+        question: "Czy muszę zalogować się u was kontem z Instagrama?",
+        answer: "Nigdy nie prosimy o hasła do kont. Możesz pobrać dowolne publicznie dostępne multimedia bez konieczności rejestracji."
+      },
+      {
+        question: "Jak wyciągnąć sam dźwięk ze ścieżki wideo na Instagramie?",
+        answer: "Wybierz format audio z listy wykrytych plików po analizie linku i pobierz ścieżkę jako plik muzyczny MP3."
+      }
+    ],
+    disclaimerHeader: "Zastrzeżenie:",
+    disclaimerText: "Ta strona jest niezależnym narzędziem do tworzenia kopii zapasowych oraz prywatnego przeglądania multimediów. Nie współpracujemy ani nie jesteśmy powiązani z serwisami TikTok, ByteDance, Instagram, Meta ani żadną powiązaną siecią społecznościową. Prawa autorskie do znaków należą do ich prawnych właścicieli. Zawsze przestrzegaj praw autorskich przed dalszym użyciem treści.",
+    copyrightText: "© 2026 SaveKlip Systems. Stworzono zgodnie ze standardami szybkiej i wydajnej sieci web.",
+    detectedAlert: "Język został dostosowany do Twojej lokalizacji geograficznej:"
+  },
+  nl: {
+    downloadsToday: "Aantal downloads vandaag",
+    themeLight: "Overschakelen naar lichte modus",
+    themeDark: "Overschakelen naar donkere modus",
+    home: "Startpagina",
+    tiktokDownloader: "TikTok Downloader",
+    instagramDownloader: "Instagram Downloader",
+    blog: "Blog",
+    aboutUs: "Over ons",
+    contactUs: "Contact",
+    privacyPolicy: "Privacybeleid",
+    termsOfService: "Servicevoorwaarden",
+    dmcaPolicy: "DMCA-beleid",
+    zeroWatermarks: "Geen watermerken",
+    heroTitleHome: "Sla TikTok & Instagram video's op in hoge kwaliteit",
+    heroTitleTikTok: "Sla TikTok video's op in hoge kwaliteit",
+    heroTitleInstagram: "Sla Instagram video's op in hoge kwaliteit",
+    heroDescHome: "Download eenvoudig je favoriete TikTok video's en Instagram reels in hoge kwaliteit. Geen registratie nodig, zonder watermerk en volledig gratis.",
+    heroDescTikTok: "Sla je favoriete TikTok's op direct op je apparaat zonder watermerk. Geen aanmeldingen, geen software-installaties en helemaal gratis.",
+    heroDescInstagram: "Download Instagram Reels, profielvideo's en fotoposts in ongeëvenaarde visuele kwaliteit. Zonder watermerken, zonder account registratie.",
+    pasteLabel: "Plak de URL-link van je video",
+    placeholderHome: "https://tiktok.com/... of https://instagram.com/reel/...",
+    placeholderTikTok: "https://www.tiktok.com/@gebruikersnaam/video/7123456...",
+    placeholderInstagram: "https://www.instagram.com/reel/Ct12345...",
+    clearLabel: "Link wissen",
+    downloadBtn: "Downloaden",
+    extractingBtn: "Media ophalen...",
+    validationErrorEmpty: "Voer eerst een geldige TikTok- of Instagram-URL in",
+    validationErrorInvalid: "Voer een geldige video-link van TikTok of Instagram in",
+    skeletonText: "Bestandsgegevens ophalen...",
+    platformDetected: "gedetecteerd",
+    extractId: "Extractie ID:",
+    downloadAnother: "Nog een video downloaden",
+    livePreview: "Live HD Sneak Preview",
+    views: "Weergaven",
+    likes: "Likes",
+    comments: "Reacties",
+    shares: "Gedeeld",
+    durationLabel: "Duur",
+    proHDBadge: "Pro HD",
+    mp4Format: "MP4-formaat",
+    downloadVideoBtn: "Video downloaden",
+    savedLabel: "Opgeslagen",
+    finishedLabel: "Voltooid!",
+    audioMP3Label: "audio (MP3)",
+    audioMP3Desc: "Hoge kwaliteit audiospoor",
+    getMP3AudioBtn: "Download MP3-audio",
+    sslSecureLabel: "Geverifieerde beveiligde SSL-verbindingen • Directe herleiding via bronserver",
+    capabilitiesTitleTikTok: "Specificaties TikTok Downloader",
+    capabilitiesTitleInstagram: "Specificaties Instagram Downloader",
+    capabilitiesTitleGeneral: "Ondersteunde platformmogelijkheden",
+    tiktokCap1: "Download onbeperkt TikTok's zonder storend watermerk",
+    tiktokCap2: "Sla achtergrondtracks en audio direct op als MP3",
+    tiktokCap3: "Sla op in diverse resoluties (HD beschikbaar)",
+    tiktokCap4: "Supersnelle overdracht zonder cliënt-side blokkades",
+    instagramCap1: "Download Reels, fotoposts en carrousel-items in een handomdraai",
+    instagramCap2: "Directe downloadkoppelingen rechtstreeks vanaf de CDN-servers",
+    instagramCap3: "Zet de leukste Reels soundtracks snel om naar MP3",
+    instagramCap4: "Veilig en anoniem downloaden zonder in te loggen",
+    faqTitle: "Veelgestelde vragen (FAQ)",
+    faqSubtitle: "Alles wat u moet weten over watermerken, downloadsnelheden en de veiligheid van uw downloads.",
+    faqItemsHome: [
+      {
+        question: "Hoe download ik een video van TikTok of Instagram?",
+        answer: "Kopieer de link van de video, reel of foto op TikTok of Instagram, plak deze hierboven in de balk en druk op 'Download'. Kies de gewenste resolutie en sla het bestand op!"
+      },
+      {
+        question: "Zijn de gedownloade video's echt vrij van watermerken?",
+        answer: "Ja, onze downloader haalt het bronbestand rechtstreeks op van de officiële distributienetwerken (CDN). Zo krijg je video's zonder logo's."
+      },
+      {
+        question: "Welke formaten en resoluties worden ondersteund?",
+        answer: "We ondersteunen hoge-resolutie videobestanden tot 1080p HD, evenals compactere bestandsgrootten (720p, 480p) en directe MP3-audiodownloads."
+      },
+      {
+        question: "Moet ik een account aanmaken om te downloaden?",
+        answer: "Nee, er is geen registratie of extra software vereist. Alles vindt volledig beveiligd plaats binnen het venster van je browser."
+      },
+      {
+        question: "Geldt er een limiet op het aantal downloads dat ik mag doen?",
+        answer: "We bieden de downloader onbeperkt en gratis aan! Ter bescherming van onze servercapaciteit hanteren we enkel een lichte veiligheidsgrens van 15 verzoeken per minuut."
+      }
+    ],
+    faqItemsTikTok: [
+      {
+        question: "Hoe download ik een filmpje van TikTok?",
+        answer: "Kopieer de weblink van de TikTok, voer deze hierboven in en klik op downloaden. Kies daarna de gewenste downloadversie."
+      },
+      {
+        question: "Is de TikTok-video zonder watermerk?",
+        answer: "Absoluut, onze techniek pakt de originele media van de bronserver nog voordat het bewegende TikTok-logo erop is geplaatst."
+      },
+      {
+        question: "Kan ik ook alleen de MP3-muziek van TikTok downloaden?",
+        answer: "Ja! Je kunt heel makkelijk de bijbehorende muziek traceren en downloaden in MP3-formaat van hoge kwaliteit."
+      },
+      {
+        question: "Is het betrouwbaar om hier TikTok-video's te downloaden?",
+        answer: "Zeker. We bewaren geen gegevens en je hoeft nooit je wachtwoorden in te vullen of gevaarlijke installaties te doen."
+      },
+      {
+        question: "Gelden er dagelijkse downloadlimieten?",
+        answer: "Nee, er zijn geen restricties per dag. Je kunt zoveel downloads uitvoeren als je zelf wilt."
+      }
+    ],
+    faqItemsInstagram: [
+      {
+        question: "Hoe download ik Instagram Reels of berichten?",
+        answer: "Vul het gekopieerde webadres van de Instagram-post hier in. Onze server toont je direct de downloadbare CDN-bestandslocaties."
+      },
+      {
+        question: "Kost het geld om Instagram-bestanden te downloaden?",
+        answer: "Nee, deze service is 100% gratis en onbeperkt te gebruiken voor alle publiekelijk beschikbare berichten."
+      },
+      {
+        question: "In hoeverre worden carrouselposts ondersteund?",
+        answer: "Ons systeem herkent alle afbeeldingen in een fotogalerij en haalt ze direct een voor een voor u op."
+      },
+      {
+        question: "Moet ik inloggen met mijn persoonlijke Instagram-gegevens?",
+        answer: "Nooit. Wij vragen u nooit om toegangscodes. U kunt via elk openbaar profiel direct de bestanden veilig downloaden."
+      },
+      {
+        question: "Kan en mag ik de geluiden van Reels opnemen?",
+        answer: "Ja, selecteer de audioversie onder de knoppen om enkel het achtergrondgeluid van het bericht in MP3 binnen te halen."
+      }
+    ],
+    disclaimerHeader: "Disclaimer:",
+    disclaimerText: "Deze webapplicatie is uitsluitend bedoeld voor het maken van persoonlijke reservesleutels en media-archivering. Wij zijn niet gelieerd aan of officieel verbonden met TikTok, ByteDance, Instagram, Meta, of andere sociale medianetwerken. Alle merkrechten liggen bij de respectievelijke eigenaren. Respecteer altijd de geldende auteursrechten alvorens u media deelt.",
+    copyrightText: "© 2026 SaveKlip Systems. Ontwikkeld conform eisen voor uiterst snelle responstijden.",
+    detectedAlert: "Taal automatisch aangepast aan uw geografische regio:"
   }
 };

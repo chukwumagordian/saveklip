@@ -5,7 +5,8 @@ import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { execSync, spawn } from "child_process";
 import fs from "fs";
-import { createClient } from "@supabase/supabase-js";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 
 dotenv.config();
 
@@ -87,53 +88,104 @@ function saveBlogPosts(posts: BlogPost[]) {
   fs.writeFileSync(BLOG_POSTS_FILE, JSON.stringify(posts, null, 2));
 }
 
-// Lazy-initialized Supabase Client
-let supabaseInstance: any = null;
-function getSupabaseClient() {
-  if (supabaseInstance !== null) return supabaseInstance;
-
-  const url = process.env.SUPABASE_URL || "https://gpqxhxtnnnkgoxaczuyl.supabase.co";
-  const anonKey = process.env.SUPABASE_ANON_KEY || "sb_publishable_madpdH3VrpWPcgjuQOjQtA_Tza_khq3";
-
-  if (!url || !anonKey) {
-    console.log("Supabase credentials not fully configured. Using local JSON store.");
-    return null;
-  }
+// Lazy-initialized Firebase/Firestore Client
+let dbInstance: any = null;
+function getFirestoreDb() {
+  if (dbInstance !== null) return dbInstance;
 
   try {
-    supabaseInstance = createClient(url, anonKey);
-    console.log("Supabase Client initialized successfully.");
+    const configPath = path.join(process.cwd(), "firebase-applet-config.json");
+    if (!fs.existsSync(configPath)) {
+      console.log("firebase-applet-config.json not found. Using local JSON store.");
+      return null;
+    }
+
+    const firebaseConfig = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    const firebaseApp = initializeApp(firebaseConfig);
+    dbInstance = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
+    console.log("Firebase Firestore Client initialized successfully.");
   } catch (err) {
-    console.error("Error creating Supabase client:", err);
+    console.error("Error creating Firebase client:", err);
   }
-  return supabaseInstance;
+  return dbInstance;
+}
+
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: "admin-backend-session",
+      email: "chuxsmarttech@gmail.com",
+      emailVerified: true,
+      isAnonymous: false,
+      tenantId: null,
+      providerInfo: []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
 }
 
 // Blog endpoints
 app.get("/api/blog/posts", async (req, res) => {
-  const supabase = getSupabaseClient();
-  if (supabase) {
+  const db = getFirestoreDb();
+  if (db) {
     try {
-      const { data, error } = await supabase
-        .from("blog_posts")
-        .select("*")
-        .order("createdAt", { ascending: false });
+      const colRef = collection(db, "blog_posts");
+      const q = query(colRef, orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
+      const data: any[] = [];
+      snapshot.forEach((docRef) => {
+        data.push({ id: docRef.id, ...docRef.data() });
+      });
 
-      if (error) {
-        throw error;
-      }
-
-      if (data && data.length > 0) {
+      if (data.length > 0) {
         return res.json(data);
       } else {
-        // If Supabase table is empty, seed it with local posts automatically!
+        // If Firestore collection is empty, seed it with local posts automatically!
         const localPosts = getBlogPosts();
-        console.log("Seeding Supabase database with local blog posts...");
-        await supabase.from("blog_posts").insert(localPosts);
+        console.log("Seeding Firestore with local blog posts...");
+        for (const post of localPosts) {
+          const docRef = doc(db, "blog_posts", post.id);
+          await setDoc(docRef, post);
+        }
         return res.json(localPosts);
       }
     } catch (dbErr: any) {
-      console.log("Supabase query failed, falling back to local JSON posts file:", dbErr.message || dbErr);
+      console.log("Firestore query failed, falling back to local JSON posts file:", dbErr.message || dbErr);
+      try {
+        handleFirestoreError(dbErr, OperationType.GET, "blog_posts");
+      } catch (err) {
+        // Log handled error info but continue to fallback
+      }
     }
   }
 
@@ -176,18 +228,20 @@ app.post("/api/blog/posts", async (req, res) => {
   posts.unshift(newPost);
   saveBlogPosts(posts);
 
-  // Sync to Supabase
-  const supabase = getSupabaseClient();
-  if (supabase) {
+  // Sync to Firestore
+  const db = getFirestoreDb();
+  if (db) {
     try {
-      const { error } = await supabase.from("blog_posts").insert([newPost]);
-      if (error) {
-        console.warn("Could not insert post to Supabase, local was updated:", error.message);
-      } else {
-        console.log("Successfully posted new blog entry to Supabase cloud database.");
-      }
+      const docRef = doc(db, "blog_posts", newPost.id);
+      await setDoc(docRef, newPost);
+      console.log("Successfully posted new blog entry to Firestore cloud database.");
     } catch (dbErr: any) {
-      console.log("Failed to sync post to Supabase store:", dbErr.message || dbErr);
+      console.log("Failed to sync post to Firestore store:", dbErr.message || dbErr);
+      try {
+        handleFirestoreError(dbErr, OperationType.WRITE, `blog_posts/${newPost.id}`);
+      } catch (err) {
+        // Log handled error
+      }
     }
   }
 
@@ -207,18 +261,20 @@ app.delete("/api/blog/posts/:id", async (req, res) => {
   posts = posts.filter(p => p.id !== id);
   saveBlogPosts(posts);
 
-  // Delete from Supabase
-  const supabase = getSupabaseClient();
-  if (supabase) {
+  // Delete from Firestore
+  const db = getFirestoreDb();
+  if (db) {
     try {
-      const { error } = await supabase.from("blog_posts").delete().eq("id", id);
-      if (error) {
-        console.warn("Could not delete post from Supabase, local was updated:", error.message);
-      } else {
-        console.log("Successfully deleted blog entry from Supabase cloud database.");
-      }
+      const docRef = doc(db, "blog_posts", id);
+      await deleteDoc(docRef);
+      console.log("Successfully deleted blog entry from Firestore cloud database.");
     } catch (dbErr: any) {
-      console.log("Failed to delete post from Supabase store:", dbErr.message || dbErr);
+      console.log("Failed to delete post from Firestore store:", dbErr.message || dbErr);
+      try {
+        handleFirestoreError(dbErr, OperationType.DELETE, `blog_posts/${id}`);
+      } catch (err) {
+        // Log handled error
+      }
     }
   }
 

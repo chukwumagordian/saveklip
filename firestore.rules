@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Catchall default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Core validation helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (request.auth.token.email == "chuxsmarttech@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidBlogPost(data) {
+      return data.id is string && data.id.size() <= 128
+          && data.title is string && data.title.size() <= 500
+          && data.slug is string && data.slug.size() <= 500
+          && data.content is string && data.content.size() <= 100000;
+    }
+
+    match /blog_posts/{postId} {
+      allow read: if true;
+      allow create, update: if isValidId(postId) && isValidBlogPost(request.resource.data);
+      allow delete: if isValidId(postId);
+    }
+
+    match /admins/{adminId} {
+      allow read: if isSignedIn() && request.auth.uid == adminId;
+      allow write: if false; // Administrative only
+    }
+  }
+}

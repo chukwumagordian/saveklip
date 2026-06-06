@@ -12,14 +12,17 @@ import {
   MessageSquare,
   Globe
 } from "lucide-react";
+import { translations, LanguageCode } from "../translations";
 
 interface LegalPagesProps {
   currentPage: "home" | "about" | "contact" | "privacy" | "terms" | "dmca" | "tiktok" | "instagram";
   setCurrentPage: (page: "home" | "about" | "contact" | "privacy" | "terms" | "dmca" | "tiktok" | "instagram") => void;
   isDarkMode: boolean;
+  language: LanguageCode;
 }
 
-export default function LegalPages({ currentPage, setCurrentPage, isDarkMode }: LegalPagesProps) {
+export default function LegalPages({ currentPage, setCurrentPage, isDarkMode, language }: LegalPagesProps) {
+  const t = translations[language] || translations["en"];
   // Common visual container classes
   const cardClass = isDarkMode
     ? "bg-[#101626]/60 border-slate-800 text-slate-300"
@@ -539,7 +542,7 @@ export default function LegalPages({ currentPage, setCurrentPage, isDarkMode }: 
         id="legal-back-to-home"
       >
         <ArrowLeft size={14} />
-        <span>Back to Video Extractor (Home)</span>
+        <span>{t.home || "Home"}</span>
       </button>
 
       {/* Main Page Area */}
@@ -548,49 +551,49 @@ export default function LegalPages({ currentPage, setCurrentPage, isDarkMode }: 
       {/* Internal Navigation links for Legal Pages */}
       <div className={`p-6 rounded-2xl border text-center space-y-3 ${cardClass}`}>
         <p className="text-xs font-semibold uppercase tracking-wider text-[#14B8A6]">
-          Platform Directory & Information
+          {t.platformDetected ? `${t.home} & ${t.sslSecureLabel ? "Information" : "info"}` : "Platform Directory & Information"}
         </p>
         <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 text-xs sm:text-sm font-medium">
           <button
             onClick={() => setCurrentPage("home")}
             className={`cursor-pointer hover:underline ${currentPage === "home" ? "text-[#14B8A6] font-bold" : ""}`}
           >
-            Video Downloader (Home)
+            {t.home || "Home"}
           </button>
           <span className="opacity-30">|</span>
           <button
             onClick={() => setCurrentPage("about")}
             className={`cursor-pointer hover:underline ${currentPage === "about" ? "text-[#14B8A6] font-bold" : ""}`}
           >
-            About Us
+            {t.aboutUs || "About Us"}
           </button>
           <span className="opacity-30">|</span>
           <button
             onClick={() => setCurrentPage("contact")}
             className={`cursor-pointer hover:underline ${currentPage === "contact" ? "text-[#14B8A6] font-bold" : ""}`}
           >
-            Contact
+            {t.contactUs || "Contact Us"}
           </button>
           <span className="opacity-30">|</span>
           <button
             onClick={() => setCurrentPage("privacy")}
             className={`cursor-pointer hover:underline ${currentPage === "privacy" ? "text-[#14B8A6] font-bold" : ""}`}
           >
-            Privacy Policy
+            {t.privacyPolicy || "Privacy Policy"}
           </button>
           <span className="opacity-30">|</span>
           <button
             onClick={() => setCurrentPage("terms")}
             className={`cursor-pointer hover:underline ${currentPage === "terms" ? "text-[#14B8A6] font-bold" : ""}`}
           >
-            Terms of Service
+            {t.termsOfService || "Terms of Service"}
           </button>
           <span className="opacity-30">|</span>
           <button
             onClick={() => setCurrentPage("dmca")}
             className={`cursor-pointer hover:underline ${currentPage === "dmca" ? "text-[#14B8A6] font-bold" : ""}`}
           >
-            DMCA Policy
+            {t.dmcaPolicy || "DMCA Policy"}
           </button>
         </div>
       </div>

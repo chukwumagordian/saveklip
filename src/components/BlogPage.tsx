@@ -41,13 +41,16 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { BlogPost } from "../types";
+import { translations, LanguageCode } from "../translations";
 
 interface BlogPageProps {
   isDarkMode: boolean;
   setCurrentPage: (page: any) => void;
+  language: LanguageCode;
 }
 
-export default function BlogPage({ isDarkMode, setCurrentPage }: BlogPageProps) {
+export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogPageProps) {
+  const t = translations[language] || translations["en"];
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -736,7 +739,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage }: BlogPageProps) 
               }`}
             >
               <ArrowLeft size={13} />
-              <span>{activeArticle ? "Back to Articles" : "Home Downloader"}</span>
+              <span>{activeArticle ? "Back to Articles" : (t.home || "Home Downloader")}</span>
             </button>
           )}
 

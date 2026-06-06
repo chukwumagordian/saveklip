@@ -27,11 +27,13 @@ import {
   Instagram,
   RefreshCw,
   ArrowRight,
-  Cloud
+  Cloud,
+  Globe
 } from "lucide-react";
 import { MediaMetadata, FAQItem, VideoOption, AudioOption } from "./types";
 import LegalPages from "./components/LegalPages";
 import BlogPage from "./components/BlogPage";
+import { LANGUAGES, LanguageCode, translations } from "./translations";
 
 function TikTokIcon({ className, size = 14 }: { className?: string; size?: number }) {
   return (
@@ -84,6 +86,50 @@ function FaqAccordionItem({ item, isDarkMode }: { item: FAQItem; isDarkMode: boo
 }
 
 export default function App() {
+  const [language, setLanguage] = useState<LanguageCode>(() => {
+    if (typeof window === "undefined") return "en";
+    const savedLang = localStorage.getItem("saveklip_lang") as LanguageCode;
+    if (savedLang && LANGUAGES.some(l => l.code === savedLang)) {
+      return savedLang;
+    }
+
+    // Auto-detect browser language
+    const browserLang = navigator.language || (navigator.languages && navigator.languages[0]) || "en";
+    const langCode = browserLang.substring(0, 2).toLowerCase() as LanguageCode;
+    
+    if (LANGUAGES.some(l => l.code === langCode)) {
+      if (langCode !== "en") {
+        sessionStorage.setItem("saveklip_lang_detected", "true");
+      }
+      return langCode;
+    }
+    return "en";
+  });
+
+  const [showDetectedToast, setShowDetectedToast] = useState(false);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+
+  // Set up RTL language layout direction dynamically
+  useEffect(() => {
+    const isRtl = LANGUAGES.find(l => l.code === language)?.isRTL || false;
+    document.documentElement.dir = isRtl ? "rtl" : "ltr";
+    document.documentElement.lang = language;
+  }, [language]);
+
+  useEffect(() => {
+    const wasDetected = sessionStorage.getItem("saveklip_lang_detected");
+    if (wasDetected === "true" && language !== "en") {
+      setShowDetectedToast(true);
+      sessionStorage.removeItem("saveklip_lang_detected");
+      const timer = setTimeout(() => {
+        setShowDetectedToast(false);
+      }, 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [language]);
+
+  const t = translations[language] || translations["en"];
+
   const [url, setUrl] = useState("");
   const [platform, setPlatform] = useState<"tiktok" | "instagram" | "none">("none");
   const [validationError, setValidationError] = useState("");
@@ -201,9 +247,9 @@ export default function App() {
       setValidationError("");
     } else {
       setPlatform("none");
-      setValidationError("Please enter a valid TikTok or Instagram video link");
+      setValidationError(t.validationErrorInvalid);
     }
-  }, [url]);
+  }, [url, language]);
 
   // Set up dark mode styles on body
   useEffect(() => {
@@ -218,7 +264,7 @@ export default function App() {
   const handleExtract = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!url.trim() || platform === "none") {
-      setValidationError("Please enter a valid TikTok or Instagram URL first");
+      setValidationError(t.validationErrorEmpty);
       return;
     }
 
@@ -425,75 +471,12 @@ export default function App() {
 
   const getFaqData = (): FAQItem[] => {
     if (currentPage === "tiktok") {
-      return [
-        {
-          question: "How do I download a video from TikTok?",
-          answer: "Simply navigate to TikTok, copy the URL of the video (using the share button), paste it into our address bar above, and standard keyboard shortcuts like Ctrl + V. Select your preferred high-quality video or audio and enjoy!",
-        },
-        {
-          question: "Are the downloaded TikTok videos free of watermarks?",
-          answer: "Yes, our TikTok pipeline extracts direct, raw stream sources so files are 100% watermark-free—perfect for clean creator archives and multi-platform backup.",
-        },
-        {
-          question: "Can I download audio tracks or music from TikTok?",
-          answer: "Yes! You can choose to extract and convert the background tracks or dynamic sound overlay from any TikTok video directly to high-bitrate audio formats like MP3.",
-        },
-        {
-          question: "Do I need to sign up to download TikTok videos?",
-          answer: "No account registration, logins, or browser extensions are required. The entire TikTok extraction runs securely within your desktop or mobile browser to preserve digital safety.",
-        },
-        {
-          question: "Is there a limit on how many TikTok downloads I can make?",
-          answer: "We offer completely unlimited extractions. Download as many trending TikToks as you need without premium accounts or hidden fees.",
-        },
-      ];
+      return t.faqItemsTikTok;
     }
     if (currentPage === "instagram") {
-      return [
-        {
-          question: "How do I download a video or reel from Instagram?",
-          answer: "Simply navigate to Instagram, copy the link of the reel, video, or photo slideshow, paste it into our address bar above, and click 'Download' to instantly generate high-quality download links.",
-        },
-        {
-          question: "Can I save Instagram Reels and videos without watermarks?",
-          answer: "Yes, our Instagram downloader directly fetches raw files from public CDN sources so there are absolutely no watermarks or platform brand overlays added to the media.",
-        },
-        {
-          question: "Does it support saving photos, posts, and carousel items?",
-          answer: "Yes, our extraction system is capable of detecting and downloading single image posts, video posts, and side-scrollable multi-photo carousel slides.",
-        },
-        {
-          question: "Do I need to authenticate or log in with my Instagram account?",
-          answer: "No! We never ask for your Instagram password or login credentials. You can safely download public reels and posts without sharing account info.",
-        },
-        {
-          question: "Are Instagram audio extract formats supported?",
-          answer: "Yes, our platform lets you isolate and download only the background music of Reels or IGTV uploads, saved in a standard high-bitrate MP3/M4A format.",
-        },
-      ];
+      return t.faqItemsInstagram;
     }
-    return [
-      {
-        question: "How do I download a video from TikTok or Instagram?",
-        answer: "Simply navigate to TikTok or Instagram, copy the URL of the video, reel, or post, paste it into our address bar above, and click 'Download'. Select your preferred quality and hit Download!",
-      },
-      {
-        question: "Are the downloaded videos free of watermarks?",
-        answer: "Yes, our social media pipeline extracts direct, raw host streams so video formats are completely watermark-free—perfect for clean archives and multi-platform repurposing.",
-      },
-      {
-        question: "Which formats and qualities are supported?",
-        answer: "We support high-definition video files up to 1080p, as well as fast compressed qualities for lower bandwidth (720p, 480p, 360p) and direct high-frequency audio extraction in MP3/M4A format.",
-      },
-      {
-        question: "Do I need to sign up for an account?",
-        answer: "No account registration or software installation is required. Everything runs entirely within our ultra-secure browser application to maintain your complete digital privacy.",
-      },
-      {
-        question: "Is there a limit on how many videos I can download?",
-        answer: "We offer completely unlimited extracts! To protect server infrastructure, we implement a mild rate-limiting mechanism of 15 requests per minute, which is more than enough for casual and pro use.",
-      },
-    ];
+    return t.faqItemsHome;
   };
 
   const faqData = getFaqData();
@@ -501,6 +484,44 @@ export default function App() {
   return (
     <div className={`min-h-screen font-sans transition-colors duration-300 ${isDarkMode ? "bg-[#0B0F19] text-slate-100" : "bg-white text-slate-900"}`}>
       
+      {/* Toast Alert showing language switch detection */}
+      <AnimatePresence>
+        {showDetectedToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className={`fixed bottom-6 right-6 z-50 max-w-sm w-full border rounded-2xl shadow-2xl p-4 flex items-start gap-4 ${
+              isDarkMode 
+                ? "bg-[#0F172A] border-slate-800 text-white" 
+                : "bg-white border-slate-200 text-slate-900"
+            }`}
+            id="detected-lang-toast"
+          >
+            <div className="p-2 bg-[#14B8A6]/10 text-[#14B8A6] rounded-xl font-bold text-xl select-none">
+              {LANGUAGES.find(l => l.code === language)?.flag || "🌐"}
+            </div>
+            <div className="flex-1 space-y-0.5">
+              <h4 className="font-extrabold text-xs uppercase tracking-wider text-[#14B8A6]">
+                {t.detectedLanguageTitle || "Language Adjusted"}
+              </h4>
+              <p className="text-xs font-semibold leading-normal text-slate-450">
+                {(t.detectedAlert || "We've loaded our translation dictionary matching your preference!").replace("{lang}", LANGUAGES.find(l => l.code === language)?.name || "English")}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowDetectedToast(false)}
+              className={`p-1 rounded-lg transition-colors cursor-pointer text-[10px] ${
+                isDarkMode ? "text-slate-500 hover:text-slate-300 hover:bg-slate-800" : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              }`}
+              title="Close"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Background decoration elements */}
       <div className="absolute top-0 left-0 right-0 h-[380px] overflow-hidden -z-10 pointer-events-none opacity-20">
         <div className={`absolute -top-[100px] left-1/4 w-[500px] h-[500px] rounded-full blur-[160px] ${isDarkMode ? "bg-[#14B8A6]/10" : "bg-slate-100"}`} />
@@ -525,15 +546,85 @@ export default function App() {
             {/* Live Stats indicator for realistic scale */}
             <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${isDarkMode ? "bg-slate-900 border-slate-800 text-slate-400" : "bg-slate-50 border-slate-100 text-slate-600"}`}>
               <span className="w-1.5 h-1.5 rounded-full bg-[#14B8A6] animate-ping" />
-              <span>⚡ {new Intl.NumberFormat().format(downloadsCount)} Downloads Today</span>
+              <span>⚡ {new Intl.NumberFormat().format(downloadsCount)} {t.downloadsToday}</span>
+            </div>
+
+            {/* Language Selector Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsLangOpen(!isLangOpen)}
+                className={`p-2 rounded-xl transition-all border flex items-center gap-1.5 select-none cursor-pointer ${
+                  isLangOpen 
+                    ? isDarkMode ? "bg-slate-800 border-slate-705 text-white" : "bg-slate-100 border-slate-300 text-slate-900"
+                    : isDarkMode ? "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-350" : "bg-slate-50 hover:bg-slate-100 border-slate-100 text-slate-700"
+                }`}
+                title="Select Language / Choose Region Preferences"
+                id="language-select-btn"
+              >
+                <Globe size={16} className={isLangOpen ? "text-[#14B8A6]" : "text-slate-400"} />
+                <span className="text-xs font-bold uppercase hidden sm:inline ml-0.5">
+                  {LANGUAGES.find(l => l.code === language)?.name}
+                </span>
+                <span className="text-xs">{LANGUAGES.find(l => l.code === language)?.flag}</span>
+              </button>
+
+              <AnimatePresence>
+                {isLangOpen && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setIsLangOpen(false)} 
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                      transition={{ duration: 0.12 }}
+                      className={`absolute right-0 mt-2 w-52 rounded-2xl border shadow-xl z-20 overflow-hidden divide-y ${
+                        isDarkMode 
+                          ? "bg-slate-950 border-slate-800 divide-slate-800" 
+                          : "bg-white border-slate-200 divide-slate-100"
+                      }`}
+                      id="language-dropdown-menu"
+                    >
+                      <div className="p-1 sm:p-1.5 max-h-80 overflow-y-auto space-y-0.5">
+                        {LANGUAGES.map((lang) => (
+                          <button
+                            key={lang.code}
+                            type="button"
+                            onClick={() => {
+                              setLanguage(lang.code);
+                              localStorage.setItem("saveklip_lang", lang.code);
+                              setIsLangOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer ${
+                              language === lang.code
+                                ? isDarkMode ? "bg-[#14B8A6]/20 text-[#14B8A6]" : "bg-[#14B8A6]/10 text-[#0F172A]"
+                                : isDarkMode ? "text-slate-300 hover:bg-slate-900" : "text-slate-700 hover:bg-slate-50"
+                            }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              <span>{lang.flag}</span>
+                              <span>{lang.name}</span>
+                            </span>
+                            {language === lang.code && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#14B8A6]" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Dark & light theme switcher */}
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               id="theme-toggle"
-              className={`p-2 rounded-xl transition-all border ${isDarkMode ? "bg-slate-900 hover:bg-slate-800 border-slate-800 text-amber-400" : "bg-slate-50 hover:bg-slate-100 border-slate-100 text-slate-700"}`}
-              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              className={`p-2 rounded-xl transition-all border cursor-pointer ${isDarkMode ? "bg-slate-900 hover:bg-slate-800 border-slate-800 text-amber-400" : "bg-slate-50 hover:bg-slate-100 border-slate-100 text-slate-700"}`}
+              title={isDarkMode ? t.themeLight : t.themeDark}
             >
               {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
             </button>
@@ -548,12 +639,14 @@ export default function App() {
           <BlogPage 
             isDarkMode={isDarkMode} 
             setCurrentPage={setCurrentPage} 
+            language={language}
           />
         ) : currentPage !== "home" && currentPage !== "tiktok" && currentPage !== "instagram" ? (
           <LegalPages 
             currentPage={currentPage} 
             setCurrentPage={setCurrentPage} 
             isDarkMode={isDarkMode} 
+            language={language}
           />
         ) : (
           <>
@@ -566,7 +659,7 @@ export default function App() {
             className={`inline-flex items-center gap-2 px-3  py-1 rounded-full text-xs font-medium mb-4 border ${isDarkMode ? "bg-slate-900 border-slate-800 text-[#14B8A6]" : "bg-[#14B8A6]/10 border-[#14B8A6]/20 text-[#14B8A6]"}`}
           >
             <Sparkles size={11} />
-            <span className="font-semibold">Zero Watermarks</span>
+            <span className="font-semibold">{t.zeroWatermarks || "Zero Watermarks"}</span>
           </motion.div>
 
           <motion.h1
@@ -576,17 +669,11 @@ export default function App() {
             className={`text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-5 ${isDarkMode ? "text-slate-100" : "text-[#0F172A]"}`}
           >
             {currentPage === "tiktok" ? (
-              <>
-                Save High-Quality <span className="text-[#14B8A6]">TikTok Videos</span>
-              </>
+              t.heroTitleTikTok
             ) : currentPage === "instagram" ? (
-              <>
-                Save High-Quality <span className="text-[#14B8A6]">Instagram Videos</span>
-              </>
+              t.heroTitleInstagram
             ) : (
-              <>
-                Save High-Quality <span className="text-[#14B8A6]">TikTok & Instagram Videos</span>
-              </>
+              t.heroTitleHome
             )}
           </motion.h1>
 
@@ -597,11 +684,11 @@ export default function App() {
             className={`text-base sm:text-lg ${isDarkMode ? "text-slate-450" : "text-slate-500"} max-w-2xl mx-auto font-medium`}
           >
             {currentPage === "tiktok" ? (
-              "Save your favorite TikTok videos directly to your device stream-free and watermark-free. No sign-ups, no installation, and completely free."
+              t.heroDescTikTok
             ) : currentPage === "instagram" ? (
-              "Download Reels, profile videos, and photo posts from Instagram in pristine visual quality. No sign-ups, no watermarks, and completely free."
+              t.heroDescInstagram
             ) : (
-              "Easily download your favorite TikTok videos and Instagram reels in high quality. No sign-ups, no watermarks, and completely free."
+              t.heroDescHome
             )}
           </motion.p>
         </div>
@@ -617,7 +704,7 @@ export default function App() {
             <form onSubmit={handleExtract} className="space-y-4">
               <div>
                 <label className={`block text-xs font-semibold uppercase tracking-wider mb-2.5 ml-1 ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
-                  Paste Video URL Link
+                  {t.pasteLabel || "Paste Video URL Link"}
                 </label>
                 <div className="relative flex flex-col md:flex-row gap-3">
                   <div className="relative flex-1">
@@ -642,10 +729,10 @@ export default function App() {
                       onChange={(e) => setUrl(e.target.value)}
                       placeholder={
                         currentPage === "tiktok"
-                          ? "https://www.tiktok.com/@username/video/7123456..."
+                          ? t.placeholderTikTok
                           : currentPage === "instagram"
-                          ? "https://www.instagram.com/reel/Ct12345..."
-                          : "https://tiktok.com/... or https://instagram.com/reel/..."
+                          ? t.placeholderInstagram
+                          : t.placeholderHome
                       }
                       className={`w-full pl-12 pr-10 sm:pr-20 py-4 rounded-2xl text-sm transition-all focus:outline-none focus:ring-2 border ${
                         validationError
@@ -666,7 +753,7 @@ export default function App() {
                             ? "text-slate-400 hover:bg-slate-800 hover:text-white" 
                             : "text-slate-400 hover:bg-slate-200 hover:text-slate-800"
                         }`}
-                        title="Clear link"
+                        title={t.clearLabel || "Clear link"}
                       >
                         ✕
                       </button>
@@ -690,12 +777,12 @@ export default function App() {
                     {loading ? (
                       <>
                         <Loader2 size={18} className="animate-spin" />
-                        <span>Extracting Media...</span>
+                        <span>{t.extractingBtn || "Extracting Media..."}</span>
                       </>
                     ) : (
                       <>
                         <Download size={18} />
-                        <span>Download</span>
+                        <span>{t.downloadBtn || "Download"}</span>
                       </>
                     )}
                   </button>
@@ -735,10 +822,10 @@ export default function App() {
             >
               <h2 className={`text-xs font-bold tracking-widest mb-6 uppercase text-center ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
                 {currentPage === "tiktok"
-                  ? "TikTok Downloader Capabilities"
+                  ? t.capabilitiesTitleTikTok || "TikTok Downloader Capabilities"
                   : currentPage === "instagram"
-                  ? "Instagram Downloader Capabilities"
-                  : "Supported Platform Capabilities"}
+                  ? t.capabilitiesTitleInstagram || "Instagram Downloader Capabilities"
+                  : t.capabilitiesTitleGeneral || "Supported Platform Capabilities"}
               </h2>
               
               <div className={`grid grid-cols-1 ${currentPage === "home" ? "md:grid-cols-2" : "max-w-2xl mx-auto"} gap-6`}>
@@ -749,14 +836,14 @@ export default function App() {
                       <div className="w-10 h-10 rounded-xl bg-black border border-slate-800 text-white flex items-center justify-center shadow-md shadow-black/20 shrink-0">
                         <TikTokIcon size={20} className="text-white" />
                       </div>
-                      <h3 className={`font-bold text-base ${isDarkMode ? "text-white" : "text-slate-900"}`}>TikTok Downloader</h3>
+                      <h3 className={`font-bold text-base ${isDarkMode ? "text-white" : "text-slate-900"}`}>{t.tiktokDownloader || "TikTok Downloader"}</h3>
                     </div>
                     <ul className="space-y-3">
                       {[
-                        "Download unlimited TikTok posts without watermarks",
-                        "Extract background tracks and sound overlays natively",
-                        "Extract multiple target resolutions (HD available)",
-                        "Instant processing directly bypassing client barriers"
+                        t.tiktokCap1 || "Download unlimited TikTok posts without watermarks",
+                        t.tiktokCap2 || "Extract background tracks and sound overlays natively",
+                        t.tiktokCap3 || "Extract multiple target resolutions (HD available)",
+                        t.tiktokCap4 || "Instant processing directly bypassing client barriers"
                       ].map((step, idx) => (
                         <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm">
                           <Check size={14} className="text-[#14B8A6] mt-0.5 min-w-[14px]" />
@@ -774,14 +861,14 @@ export default function App() {
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-md shadow-rose-500/10 shrink-0">
                         <Instagram size={18} className="stroke-[2.5]" />
                       </div>
-                      <h3 className={`font-bold text-base ${isDarkMode ? "text-white" : "text-slate-900"}`}>Instagram Downloader</h3>
+                      <h3 className={`font-bold text-base ${isDarkMode ? "text-white" : "text-slate-900"}`}>{t.instagramDownloader || "Instagram Downloader"}</h3>
                     </div>
                     <ul className="space-y-3">
                       {[
-                        "Extract Reels, Posts, and Carousel items quickly",
-                        "Direct CDN fetch loops preserving premium bitrate files",
-                        "MP3 dynamic extract for reels sound clips",
-                        "Complete safe bypass of feed logins & security tokens"
+                        t.instagramCap1 || "Extract Reels, Posts, and Carousel items quickly",
+                        t.instagramCap2 || "Direct CDN fetch loops preserving premium bitrate files",
+                        t.instagramCap3 || "MP3 dynamic extract for reels sound clips",
+                        t.instagramCap4 || "Complete safe bypass of feed logins & security tokens"
                       ].map((step, idx) => (
                         <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm">
                           <Check size={14} className="text-[#14B8A6] mt-0.5 min-w-[14px]" />
@@ -808,7 +895,10 @@ export default function App() {
               <div className="flex flex-col md:flex-row gap-8 items-center md:items-start animate-pulse">
                 {/* Visual Skeleton preview thumbnail */}
                 <div className="w-full md:w-80 h-[400px] rounded-2xl bg-neutral-800 flex items-center justify-center">
-                  <Film size={48} className="text-neutral-700 animate-bounce" />
+                  <div className="flex flex-col items-center gap-3">
+                    <Film size={48} className="text-neutral-700 animate-bounce" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 animate-pulse">{t.skeletonText || "Extracting Details..."}</span>
+                  </div>
                 </div>
                 {/* Visual content details list */}
                 <div className="flex-1 space-y-6 w-full">
@@ -858,10 +948,10 @@ export default function App() {
                       ) : (
                         <Instagram size={12} className="stroke-[2.5]" />
                       )}
-                      {result.platform} detected
+                      {result.platform} {t.platformDetected || "detected"}
                     </span>
                     <span className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
-                      Extract ID: <span className="font-mono">{result.id}</span>
+                      {t.extractId || "Extract ID:"} <span className="font-mono">{result.id}</span>
                     </span>
                   </div>
 
@@ -874,7 +964,7 @@ export default function App() {
                     }`}
                   >
                     <RotateCcw size={11} />
-                    <span>Download another video</span>
+                    <span>{t.downloadAnother || "Download another video"}</span>
                   </button>
                 </div>
 
@@ -888,7 +978,7 @@ export default function App() {
                       
                       <div className="absolute top-3 left-3 z-10 px-2.5 py-1 rounded-lg backdrop-blur-md bg-black/40 text-[10px] font-medium text-white flex items-center gap-1">
                         <div className="w-1.5 h-1.5 rounded-full bg-[#14B8A6] animate-ping" />
-                        Live HD Preview
+                        {t.livePreview || "Live HD Preview"}
                       </div>
 
                       <video
@@ -911,7 +1001,7 @@ export default function App() {
                             <Eye size={14} />
                           </div>
                           <span className="block font-bold text-xs">{result.views}</span>
-                          <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-450"}`}>Views</span>
+                          <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-455"}`}>{t.views || "Views"}</span>
                         </div>
 
                         <div className="text-center">
@@ -919,7 +1009,7 @@ export default function App() {
                             <Heart size={14} fill="currentColor" />
                           </div>
                           <span className="block font-bold text-xs">{result.likes}</span>
-                          <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-450"}`}>Likes</span>
+                          <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-455"}`}>{t.likes || "Likes"}</span>
                         </div>
 
                         <div className="text-center">
@@ -927,7 +1017,7 @@ export default function App() {
                             <MessageSquare size={14} />
                           </div>
                           <span className="block font-bold text-xs">{result.comments}</span>
-                          <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-450"}`}>Comments</span>
+                          <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-455"}`}>{t.comments || "Comments"}</span>
                         </div>
 
                         <div className="text-center">
@@ -935,7 +1025,7 @@ export default function App() {
                             <Share2 size={14} />
                           </div>
                           <span className="block font-bold text-xs">{result.shares}</span>
-                          <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-450"}`}>Shares</span>
+                          <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-455"}`}>{t.shares || "Shares"}</span>
                         </div>
 
                       </div>
@@ -956,7 +1046,7 @@ export default function App() {
                           {result.creator}
                         </span>
                         <span className={`text-[11px] ${isDarkMode ? "text-slate-500" : "text-slate-450"}`}>
-                          • Duration: {result.duration}
+                          • {t.durationLabel || "Duration"}: {result.duration}
                         </span>
                       </div>
                     </div>
@@ -995,12 +1085,12 @@ export default function App() {
                                   <span className="font-bold text-sm">{opt.resolution}</span>
                                   {opt.resolution.includes("HD") && (
                                     <span className="text-[9px] uppercase tracking-widest font-extrabold bg-[#14B8A6] text-white px-1.5 py-0.5 rounded">
-                                      Pro HD
+                                      {t.proHDBadge || "Pro HD"}
                                     </span>
                                   )}
                                 </div>
                                 <span className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
-                                  MP4 format • {opt.fps}fps • File size: {opt.size}
+                                  {t.mp4Format || "MP4 format"} • {opt.fps}fps • {opt.size}
                                 </span>
                               </div>
                             </div>
@@ -1021,17 +1111,17 @@ export default function App() {
                               {isDownloading ? (
                                 <>
                                   <Loader2 size={13} className="animate-spin" />
-                                  <span>{downloadProgress}% Saved</span>
+                                  <span>{downloadProgress}% {t.savedLabel || "Saved"}</span>
                                 </>
                               ) : downloadSuccess && isDownloading ? (
                                 <>
                                   <Check size={13} />
-                                  <span>Finished!</span>
+                                  <span>{t.finishedLabel || "Finished!"}</span>
                                 </>
                               ) : (
                                 <>
                                   <Download size={13} />
-                                  <span>Download Video</span>
+                                  <span>{t.downloadVideoBtn || "Download Video"}</span>
                                 </>
                               )}
                             </button>
@@ -1054,9 +1144,9 @@ export default function App() {
                             <Music size={16} />
                           </div>
                           <div>
-                            <span className="font-bold text-sm block">audio (MP3)</span>
+                            <span className="font-bold text-sm block">{t.audioMP3Label || "Audio (MP3)"}</span>
                             <span className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
-                              High Quality audio • {result.audioOption.duration} mins • MP3 format • {result.audioOption.size}
+                              {t.audioMP3Desc || "High Quality Audio Extraction"} • {result.audioOption.duration} mins • MP3 format • {result.audioOption.size}
                             </span>
                           </div>
                         </div>
@@ -1077,12 +1167,12 @@ export default function App() {
                           {activeDownloadId === "audio-extract" ? (
                             <>
                               <Loader2 size={13} className="animate-spin" />
-                              <span>{downloadProgress}% Extracted</span>
+                              <span>{downloadProgress}% {t.savedLabel || "Saved"}</span>
                             </>
                           ) : (
                             <>
                               <Music size={13} />
-                              <span>Get MP3 audio</span>
+                              <span>{t.getMP3AudioBtn || "Get MP3 Audio"}</span>
                             </>
                           )}
                         </button>
@@ -1092,7 +1182,7 @@ export default function App() {
                     {/* Security credentials line */}
                     <div className="flex items-center gap-2 text-[11px] text-neutral-500 justify-center">
                       <Shield size={12} className="text-emerald-500" />
-                      <span>Encrypted SSL downlinks verified • Safe direct origin source server bypass</span>
+                      <span>{t.sslSecureLabel || "Encrypted SSL downlinks verified • Safe direct origin source server bypass"}</span>
                     </div>
 
 
@@ -1108,10 +1198,10 @@ export default function App() {
         <section className="mt-20 max-w-4xl mx-auto space-y-6">
           <div className="text-center mb-8">
             <h2 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${isDarkMode ? "text-white" : "text-slate-950"}`}>
-              Frequently Answered FAQ
+              {t.faqTitle || "Frequently Answered FAQ"}
             </h2>
             <p className={`text-sm mt-2 ${isDarkMode ? "text-neutral-400" : "text-slate-500"}`}>
-              Everything you need to know about watermarks, downloading speed limits, and file safety.
+              {t.faqSubtitle || "Everything you need to know about watermarks, downloading speed limits, and file safety."}
             </p>
           </div>
 
@@ -1148,7 +1238,7 @@ export default function App() {
                     : isDarkMode ? "text-slate-300 hover:text-white" : "text-slate-700 hover:text-slate-900"
                 }`}
               >
-                Home
+                {t.home || "Home"}
               </button>
               <span className={`opacity-20 ${isDarkMode ? "text-slate-800" : "text-slate-300"}`}>|</span>
               <button
@@ -1159,7 +1249,7 @@ export default function App() {
                     : isDarkMode ? "text-slate-300 hover:text-white" : "text-slate-700 hover:text-slate-900"
                 }`}
               >
-                TikTok Downloader
+                {t.tiktokDownloader || "TikTok Downloader"}
               </button>
               <span className={`opacity-20 ${isDarkMode ? "text-slate-800" : "text-slate-300"}`}>|</span>
               <button
@@ -1170,7 +1260,7 @@ export default function App() {
                     : isDarkMode ? "text-slate-300 hover:text-white" : "text-slate-700 hover:text-slate-900"
                 }`}
               >
-                Instagram Downloader
+                {t.instagramDownloader || "Instagram Downloader"}
               </button>
               <span className={`opacity-20 ${isDarkMode ? "text-slate-800" : "text-slate-300"}`}>|</span>
               <button
@@ -1181,7 +1271,7 @@ export default function App() {
                     : isDarkMode ? "text-slate-300 hover:text-white" : "text-slate-700 hover:text-slate-900"
                 }`}
               >
-                Blog
+                {t.blog || "Blog"}
               </button>
             </div>
 
@@ -1195,7 +1285,7 @@ export default function App() {
                     : isDarkMode ? "text-slate-400 hover:text-white" : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                About Us
+                {t.aboutUs || "About Us"}
               </button>
               <span className={`opacity-25 ${isDarkMode ? "text-slate-800" : "text-slate-200"}`}>|</span>
               <button
@@ -1206,7 +1296,7 @@ export default function App() {
                     : isDarkMode ? "text-slate-400 hover:text-white" : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Contact Us
+                {t.contactUs || "Contact Us"}
               </button>
               <span className={`opacity-25 ${isDarkMode ? "text-slate-800" : "text-slate-200"}`}>|</span>
               <button
@@ -1217,7 +1307,7 @@ export default function App() {
                     : isDarkMode ? "text-slate-400 hover:text-white" : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Privacy Policy
+                {t.privacyPolicy || "Privacy Policy"}
               </button>
               <span className={`opacity-25 ${isDarkMode ? "text-slate-800" : "text-slate-200"}`}>|</span>
               <button
@@ -1228,7 +1318,7 @@ export default function App() {
                     : isDarkMode ? "text-slate-400 hover:text-white" : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Terms of Service
+                {t.termsOfService || "Terms of Service"}
               </button>
               <span className={`opacity-25 ${isDarkMode ? "text-slate-800" : "text-slate-200"}`}>|</span>
               <button
@@ -1239,17 +1329,17 @@ export default function App() {
                     : isDarkMode ? "text-slate-400 hover:text-white" : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                DMCA Policy
+                {t.dmcaPolicy || "DMCA Policy"}
               </button>
             </div>
           </div>
 
           <p className="max-w-3xl mx-auto text-[11px] opacity-85 leading-relaxed">
-            <strong>Disclaimer:</strong> This application is a tool for personal backup archiving and media exploration. We are not allied or officially affiliated with TikTok, ByteDance, Instagram, Meta, or any related social media networks. Brand copyrights belong entirely to their respective media owners. Always respect digital intellectual property rules before repurposing content.
+            <strong>{t.disclaimerHeader || "Disclaimer"}:</strong> {t.disclaimerText || "This application is a tool for personal backup archiving and media exploration. We are not allied or officially affiliated with TikTok, ByteDance, Instagram, Meta, or any related social media networks. Brand copyrights belong entirely to their respective media owners."}
           </p>
 
           <div className={`text-[10px] ${isDarkMode ? "text-slate-600" : "text-slate-400"}`}>
-            &copy; 2026 SaveKlip Systems. Realized in compliance with high performance web protocols.
+            {t.copyrightText || "© 2026 SaveKlip Systems. Realized in compliance with high performance web protocols."}
           </div>
         </div>
       </footer>

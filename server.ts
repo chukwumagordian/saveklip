@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import { execSync, spawn } from "child_process";
 import fs from "fs";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, query, orderBy } from "firebase/firestore";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 
 dotenv.config();
 
@@ -170,13 +170,39 @@ app.get("/api/blog/posts", async (req, res) => {
       if (data.length > 0) {
         return res.json(data);
       } else {
-        // If Firestore collection is empty, seed it with local posts automatically!
+        // Check if we've already done the initial seeding.
+        // If so, and data.length is 0, the user has intentionally deleted all posts.
+        const seedDocRef = doc(db, "system_settings", "blog_seed_state");
+        let alreadySeeded = false;
+        try {
+          const seedSnap = await getDoc(seedDocRef);
+          if (seedSnap.exists() && seedSnap.data()?.seeded === true) {
+            alreadySeeded = true;
+          }
+        } catch (seedCheckErr: any) {
+          console.log("Could not check seed status in Firestore, defaulting to false:", seedCheckErr.message || seedCheckErr);
+        }
+
+        if (alreadySeeded) {
+          console.log("Database has already been seeded; returning empty list (user intentionally deleted all posts).");
+          return res.json([]);
+        }
+
+        // If not seeded yet, seed it with local posts automatically!
         const localPosts = getBlogPosts();
-        console.log("Seeding Firestore with local blog posts...");
+        console.log("First time initialization: Seeding Firestore with default blog posts...");
         for (const post of localPosts) {
           const docRef = doc(db, "blog_posts", post.id);
           await setDoc(docRef, post);
         }
+
+        // Mark as seeded in system settings
+        try {
+          await setDoc(seedDocRef, { seeded: true });
+        } catch (seedWriteErr: any) {
+          console.error("Failed to write seed mark state to system settings:", seedWriteErr.message || seedWriteErr);
+        }
+
         return res.json(localPosts);
       }
     } catch (dbErr: any) {

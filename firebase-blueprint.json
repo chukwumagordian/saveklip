@@ -1,5 +1,17 @@
 {
   "entities": {
+    "system_settings": {
+      "title": "System Settings",
+      "description": "Internal configuration states and initialization flags",
+      "type": "object",
+      "properties": {
+        "seeded": {
+          "type": "boolean",
+          "description": "Indicates whether the database has been initially seeded"
+        }
+      },
+      "required": ["seeded"]
+    },
     "blog_post": {
       "title": "Blog Post",
       "description": "A blog post item in the CMS system",
@@ -54,6 +66,10 @@
     "blog_posts/{postId}": {
       "schema": "blog_post",
       "description": "Global collection containing all published blog articles"
+    },
+    "system_settings/{settingsId}": {
+      "schema": "system_settings",
+      "description": "General system configuration and seeding flags"
     }
   }
 }

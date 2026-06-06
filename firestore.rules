@@ -30,6 +30,10 @@ service cloud.firestore {
       allow delete: if isValidId(postId);
     }
 
+    match /system_settings/{settingsId} {
+      allow read, write: if isValidId(settingsId);
+    }
+
     match /admins/{adminId} {
       allow read: if isSignedIn() && request.auth.uid == adminId;
       allow write: if false; // Administrative only

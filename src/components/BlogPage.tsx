@@ -858,9 +858,9 @@ export default function BlogPage({ isDarkMode, setCurrentPage }: BlogPageProps) 
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                  <div className="space-y-12">
                     {/* Create Form */}
-                    <form onSubmit={handlePublish} className="lg:col-span-7 space-y-4">
+                    <form onSubmit={handlePublish} className="space-y-4 w-full">
                       <h4 className={`text-xs font-extrabold uppercase tracking-widest ${isDarkMode ? "text-neutral-400" : "text-slate-555"}`}>
                         ✍️ Draft Fresh Article
                       </h4>
@@ -1855,12 +1855,12 @@ export default function BlogPage({ isDarkMode, setCurrentPage }: BlogPageProps) 
                     </form>
 
                     {/* Manage Existing Articles */}
-                    <div className="lg:col-span-5 space-y-4">
+                    <div className="space-y-4 pt-10 border-t border-slate-205 dark:border-neutral-800/60">
                       <h4 className={`text-xs font-extrabold uppercase tracking-widest ${isDarkMode ? "text-neutral-400" : "text-slate-555"}`}>
                         🎒 Existing Articles ({posts.length})
                       </h4>
 
-                      <div className="max-h-[500px] overflow-y-auto pr-2 space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2">
                         {posts.map((p) => (
                           <div
                             key={p.id}

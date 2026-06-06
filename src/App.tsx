@@ -33,6 +33,7 @@ import {
 import { MediaMetadata, FAQItem, VideoOption, AudioOption } from "./types";
 import LegalPages from "./components/LegalPages";
 import BlogPage from "./components/BlogPage";
+import { BrushHighlight } from "./components/BrushHighlight";
 import { LANGUAGES, LanguageCode, translations } from "./translations";
 
 function TikTokIcon({ className, size = 14 }: { className?: string; size?: number }) {
@@ -712,11 +713,11 @@ export default function App() {
             className={`text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-5 ${isDarkMode ? "text-slate-100" : "text-[#0F172A]"}`}
           >
             {currentPage === "tiktok" ? (
-              t.heroTitleTikTok
+              <BrushHighlight text={t.heroTitleTikTok} isDarkMode={isDarkMode} />
             ) : currentPage === "instagram" ? (
-              t.heroTitleInstagram
+              <BrushHighlight text={t.heroTitleInstagram} isDarkMode={isDarkMode} />
             ) : (
-              t.heroTitleHome
+              <BrushHighlight text={t.heroTitleHome} isDarkMode={isDarkMode} />
             )}
           </motion.h1>
 

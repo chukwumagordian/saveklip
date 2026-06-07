@@ -270,6 +270,67 @@ app.post("/api/blog/posts", async (req, res) => {
   res.json(newPost);
 });
 
+app.put("/api/blog/posts/:id", async (req, res) => {
+  const { id } = req.params;
+  const { token, title, content, excerpt, category, imageUrl, author } = req.body;
+
+  if (token !== "SUPER_SECRET_ADMIN_TOKEN_123") {
+    return res.status(401).json({ error: "Access denied. Invalid credentials token." });
+  }
+
+  if (!title || !content) {
+    return res.status(400).json({ error: "Title and content fields are required." });
+  }
+
+  // Update local
+  let posts = getBlogPosts();
+  const postIndex = posts.findIndex(p => p.id === id);
+  if (postIndex === -1) {
+    return res.status(404).json({ error: "Post not found." });
+  }
+
+  const existingPost = posts[postIndex];
+  
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "");
+
+  const updatedPost: BlogPost = {
+    ...existingPost,
+    title,
+    slug,
+    content,
+    excerpt: excerpt || (content.length > 150 ? content.slice(0, 150) + "..." : content),
+    author: author || existingPost.author,
+    imageUrl: imageUrl || existingPost.imageUrl,
+    category: category || existingPost.category,
+    readTime: `${Math.ceil(content.split(" ").length / 200) || 1} min read`
+  };
+
+  posts[postIndex] = updatedPost;
+  saveBlogPosts(posts);
+
+  // Sync to Firestore
+  const db = getFirestoreDb();
+  if (db) {
+    try {
+      const docRef = doc(db, "blog_posts", id);
+      await setDoc(docRef, updatedPost);
+      console.log("Successfully updated blog entry in Firestore cloud database.");
+    } catch (dbErr: any) {
+      console.log("Failed to sync updated post to Firestore store:", dbErr.message || dbErr);
+      try {
+        handleFirestoreError(dbErr, OperationType.WRITE, `blog_posts/${id}`);
+      } catch (err) {
+        // Log handled error
+      }
+    }
+  }
+
+  res.json(updatedPost);
+});
+
 app.delete("/api/blog/posts/:id", async (req, res) => {
   const { id } = req.params;
   const token = req.headers.authorization;

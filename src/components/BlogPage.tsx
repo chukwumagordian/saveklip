@@ -10,6 +10,7 @@ import {
   Lock, 
   Unlock, 
   LogOut,
+  Edit,
   FileText, 
   Image as ImageIcon, 
   Send, 
@@ -42,6 +43,39 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { BlogPost } from "../types";
 import { translations, LanguageCode } from "../translations";
+
+// Helper to extract clean domain name from an external URL for copyright attribution
+function getImageSourceText(url: string): string | null {
+  if (!url) return null;
+  try {
+    const trimmed = url.trim();
+    if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+      return null;
+    }
+    const parsed = new URL(trimmed);
+    const hostname = parsed.hostname.toLowerCase();
+    
+    // Ignore localhost
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return null;
+    }
+    
+    // For common CDNs or URL formats, strip known system prefixes
+    let cleanHost = hostname;
+    if (cleanHost.startsWith("www.")) {
+      cleanHost = cleanHost.substring(4);
+    }
+    
+    const parts = cleanHost.split(".");
+    if (parts.length >= 2) {
+      // Get the domain and TLD, e.g., pexels.com, unsplash.com
+      return parts.slice(-2).join(".");
+    }
+    return cleanHost;
+  } catch (e) {
+    return null;
+  }
+}
 
 interface BlogPageProps {
   isDarkMode: boolean;
@@ -76,6 +110,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
   const [newImageUrl, setNewImageUrl] = useState("");
   const [newAuthor, setNewAuthor] = useState("Social Ninja");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
 
   // References and custom word processing controls
   const editorRef = useRef<HTMLDivElement>(null);
@@ -502,7 +537,44 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
     };
   }, [isLoggedIn]);
 
-  // Form submit for publishing new article
+  // Handle start editing a post
+  const handleStartEdit = (post: BlogPost) => {
+    setEditingPost(post);
+    setNewTitle(post.title);
+    setNewCategory(post.category);
+    setNewAuthor(post.author);
+    setNewExcerpt(post.excerpt || "");
+    setNewImageUrl(post.imageUrl || "");
+    setCoverInputMode(post.imageUrl && post.imageUrl.startsWith("data:") ? "upload" : "url");
+    setNewContent(post.content || "");
+    
+    // Set content in the Rich Text Editor div
+    setTimeout(() => {
+      if (editorRef.current) {
+        editorRef.current.innerHTML = post.content || "";
+        editorRef.current.focus();
+      }
+    }, 50);
+
+    // Smooth scroll back to top of admin control container so they can see the edit form
+    const formElement = document.getElementById("admin-draft-form");
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPost(null);
+    setNewTitle("");
+    setNewContent("");
+    setNewExcerpt("");
+    setNewImageUrl("");
+    if (editorRef.current) {
+      editorRef.current.innerHTML = "";
+    }
+  };
+
+  // Form submit for publishing new article or saving edit
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
@@ -525,8 +597,11 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
         author: newAuthor
       };
 
-      const res = await fetch("/api/blog/posts", {
-        method: "POST",
+      const url = editingPost ? `/api/blog/posts/${editingPost.id}` : "/api/blog/posts";
+      const method = editingPost ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(postPayload)
       });
@@ -537,15 +612,21 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
         data = JSON.parse(text);
       } catch (jsonErr) {
         if (text.trim().toLowerCase().startsWith("<!doctype") || text.trim().toLowerCase().startsWith("<html")) {
-          setErrorMessage("Failed to publish: Backend offline. Full-stack hosting (e.g. Render Web Service) required.");
+          setErrorMessage(`Failed to ${editingPost ? "update" : "publish"}: Backend offline. Full-stack hosting (e.g. Render Web Service) required.`);
           return;
         }
         throw jsonErr;
       }
 
       if (res.ok) {
-        setPosts((prev) => [data, ...prev]);
-        setSuccessMessage("Your fantastic article was published successfully!");
+        if (editingPost) {
+          setPosts((prev) => prev.map((p) => p.id === editingPost.id ? data : p));
+          setSuccessMessage("Your article was updated successfully!");
+          setEditingPost(null);
+        } else {
+          setPosts((prev) => [data, ...prev]);
+          setSuccessMessage("Your fantastic article was published successfully!");
+        }
         // Reset form variables
         setNewTitle("");
         setNewContent("");
@@ -556,7 +637,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
         }
         setTimeout(() => setSuccessMessage(""), 4000);
       } else {
-        setErrorMessage(data.error || "Failed to publish article.");
+        setErrorMessage(data.error || `Failed to ${editingPost ? "update" : "publish"} article.`);
       }
     } catch (err) {
       setErrorMessage("Network loss during publication dispatch.");
@@ -895,9 +976,9 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
 
                   <div className="space-y-12">
                     {/* Create Form */}
-                    <form onSubmit={handlePublish} className="space-y-4 w-full">
+                    <form id="admin-draft-form" onSubmit={handlePublish} className="space-y-4 w-full">
                       <h4 className={`text-xs font-extrabold uppercase tracking-widest ${isDarkMode ? "text-neutral-400" : "text-slate-555"}`}>
-                        ✍️ Draft Fresh Article
+                        {editingPost ? "✏️ Edit Blog Article" : "✍️ Draft Fresh Article"}
                       </h4>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1091,6 +1172,13 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                               referrerPolicy="no-referrer"
                               className="w-full h-24 object-cover filter brightness-75"
                             />
+                            {getImageSourceText(newImageUrl) && (
+                              <div className="absolute top-2 right-2 z-10 select-none">
+                                <span className="font-mono text-[8px] uppercase tracking-wider bg-black/75 backdrop-blur-md text-neutral-350 rounded px-1.5 py-0.5 border border-white/10 shrink-0">
+                                  Source: {getImageSourceText(newImageUrl)}
+                                </span>
+                              </div>
+                            )}
                             <div className="absolute inset-x-0 bottom-0 bg-neutral-950/80 flex items-center justify-between px-3 py-1.5 whitespace-nowrap">
                               <span className="text-[10px] font-bold text-white truncate max-w-[70%]">
                                 Live Cover Thumbnail Preview
@@ -1875,18 +1963,39 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                         </div>
                       </div>
 
-                      <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className={`w-full py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                          isSubmitting
-                            ? "bg-purple-650 text-white cursor-wait opacity-80"
-                            : "bg-purple-600 hover:bg-purple-550 text-white shadow shadow-purple-500/10 active:scale-98"
-                        }`}
-                      >
-                        <Send size={13} />
-                        <span>{isSubmitting ? "Dispatching publication..." : "Publish Blog Article"}</span>
-                      </button>
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                            isSubmitting
+                              ? "bg-purple-650 text-white cursor-wait opacity-85"
+                              : "bg-purple-600 hover:bg-purple-550 text-white shadow shadow-purple-500/10 active:scale-98"
+                          }`}
+                        >
+                          <Send size={13} />
+                          <span>
+                            {isSubmitting 
+                              ? (editingPost ? "Saving updates..." : "Dispatching publication...") 
+                              : (editingPost ? "Save Changes" : "Publish Blog Article")
+                            }
+                          </span>
+                        </button>
+                        
+                        {editingPost && (
+                          <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            className={`py-3 px-6 rounded-xl text-xs font-bold transition-all border cursor-pointer active:scale-98 ${
+                              isDarkMode
+                                ? "bg-neutral-900 hover:bg-neutral-850 border-neutral-800 text-neutral-400 hover:text-white"
+                                : "bg-white hover:bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900"
+                            }`}
+                          >
+                            Cancel Edit
+                          </button>
+                        )}
+                      </div>
                     </form>
 
                     {/* Manage Existing Articles */}
@@ -1917,13 +2026,23 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                               </span>
                             </div>
 
-                            <button
-                              onClick={() => setPostToDelete(p.id)}
-                              className={`p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 hover:scale-105 transition-all cursor-pointer`}
-                              title="Delete blog post"
-                            >
-                              <Trash2 size={13} />
-                            </button>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <button
+                                onClick={() => handleStartEdit(p)}
+                                className={`p-2 rounded-lg bg-purple-500/10 hover:bg-purple-500/25 text-purple-500 dark:text-purple-400 border border-purple-500/15 dark:border-purple-500/25 hover:scale-105 transition-all cursor-pointer`}
+                                title="Edit blog post"
+                              >
+                                <Edit size={13} />
+                              </button>
+
+                              <button
+                                onClick={() => setPostToDelete(p.id)}
+                                className={`p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 hover:scale-105 transition-all cursor-pointer`}
+                                title="Delete blog post"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1952,7 +2071,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
             }`}
           >
             {/* Post image cover card bar */}
-            <div className="relative h-60 sm:h-80 w-full rounded-2xl overflow-hidden mb-8">
+            <div className="relative h-60 sm:h-80 w-full rounded-2xl overflow-hidden mb-8 animate-fade-in">
               <img 
                 src={activeArticle.imageUrl} 
                 alt={activeArticle.title}
@@ -1963,6 +2082,19 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                   {activeArticle.category}
                 </span>
               </div>
+              {getImageSourceText(activeArticle.imageUrl) && (
+                <div className="absolute bottom-4 right-4 z-10 select-none">
+                  <a 
+                    href={activeArticle.imageUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="font-mono text-[9px] uppercase tracking-wider bg-black/65 hover:bg-black/85 backdrop-blur-md text-neutral-200 hover:text-white rounded-lg px-2.5 py-1 border border-white/10 transition-all flex items-center gap-1.5 shrink-0"
+                    title={`View or attribute image source on ${getImageSourceText(activeArticle.imageUrl)}`}
+                  >
+                    Image source: {getImageSourceText(activeArticle.imageUrl)}
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* Title & Author Info */}
@@ -2296,6 +2428,26 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                               {post.category}
                             </span>
                           </div>
+                          {getImageSourceText(post.imageUrl) && (
+                            <div className="absolute bottom-3 right-3 z-10 select-none">
+                              <a 
+                                href={post.imageUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent card navigation trigger
+                                }}
+                                className={`font-mono text-[8.5px] uppercase tracking-wider px-2 py-0.5 rounded-md border transition-all ${
+                                  isDarkMode 
+                                    ? "bg-black/60 hover:bg-black/80 backdrop-blur-md border-neutral-800 text-neutral-400 hover:text-white" 
+                                    : "bg-white/80 hover:bg-white backdrop-blur-md border-slate-205 text-slate-550 hover:text-slate-800"
+                                }`}
+                                title={`Check image on ${getImageSourceText(post.imageUrl)}`}
+                              >
+                                Source: {getImageSourceText(post.imageUrl)}
+                              </a>
+                            </div>
+                          )}
                         </div>
 
                         {/* Meta & Excerpt */}

@@ -1583,69 +1583,6 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                             </div>
                           </div>
 
-                          {/* Image upload triggers */}
-                          <div className="flex items-center gap-1.5 ml-auto">
-                            <input
-                              type="file"
-                              ref={fileInputRef}
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                if (file.size > 5 * 1024 * 1024) {
-                                  setErrorMessage("Select an image under 5MB for optimized loading.");
-                                  return;
-                                }
-                                const reader = new FileReader();
-                                reader.onload = (event) => {
-                                  const dataUrl = event.target?.result as string;
-                                  if (dataUrl) {
-                                    if (editorRef.current) {
-                                      editorRef.current.focus();
-                                    }
-                                    document.execCommand("insertImage", false, dataUrl);
-                                    
-                                    // Set clean class identifiers on all editor images
-                                    setTimeout(() => {
-                                      if (editorRef.current) {
-                                        const imgs = editorRef.current.querySelectorAll("img");
-                                        imgs.forEach(img => {
-                                          if (!img.className) {
-                                            img.className = "rounded-2xl max-w-full my-6 border border-neutral-800/10 dark:border-neutral-800/40 shadow-md block mx-auto hover:scale-[1.01] transition-transform duration-300 referrerPolicy";
-                                            img.setAttribute("referrerPolicy", "no-referrer");
-                                          }
-                                        });
-                                        setNewContent(editorRef.current.innerHTML);
-                                      }
-                                    }, 50);
-
-                                    setSuccessMessage("Image uploaded successfully and embedded!");
-                                    setTimeout(() => setSuccessMessage(""), 2000);
-                                  }
-                                };
-                                reader.readAsDataURL(file);
-                                e.target.value = "";
-                              }}
-                            />
-                            
-                            <button
-                              type="button"
-                              title="Embed Inline Image anywhere"
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                fileInputRef.current?.click();
-                              }}
-                              className={`py-1 px-2.5 rounded-lg border transition-all text-[10px] font-bold flex items-center gap-1 ${
-                                isDarkMode 
-                                  ? "bg-purple-950/40 hover:bg-purple-950 border-purple-500/30 text-purple-300" 
-                                  : "bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700"
-                              }`}
-                            >
-                              <Upload size={11} />
-                              <span>Upload Media</span>
-                            </button>
-                          </div>
                         </div>
 
                         {/* Selected Image Resize Overlay Menu */}

@@ -285,15 +285,34 @@ app.put("/api/blog/posts/:id", async (req, res) => {
     return res.status(400).json({ error: "Title and content fields are required." });
   }
 
+  const db = getFirestoreDb();
+  let existingPost: BlogPost | null = null;
+  
+  if (db) {
+    try {
+      const docRef = doc(db, "blog_posts", id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        existingPost = { id: docSnap.id, ...(docSnap.data() as any) };
+      }
+    } catch (dbErr) {
+      console.log("Firestore fetch failed in PUT route:", dbErr);
+    }
+  }
+
   // Update local
   let posts = getBlogPosts();
   const postIndex = posts.findIndex(p => p.id === id);
-  if (postIndex === -1) {
+  if (postIndex !== -1) {
+    if (!existingPost) {
+      existingPost = posts[postIndex];
+    }
+  }
+
+  if (!existingPost) {
     return res.status(404).json({ error: "Post not found." });
   }
 
-  const existingPost = posts[postIndex];
-  
   const slug = title
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -312,11 +331,14 @@ app.put("/api/blog/posts/:id", async (req, res) => {
     readTime: `${Math.ceil(content.split(" ").length / 200) || 1} min read`
   };
 
-  posts[postIndex] = updatedPost;
+  if (postIndex !== -1) {
+    posts[postIndex] = updatedPost;
+  } else {
+    posts.unshift(updatedPost);
+  }
   saveBlogPosts(posts);
 
   // Sync to Firestore
-  const db = getFirestoreDb();
   if (db) {
     try {
       const docRef = doc(db, "blog_posts", id);

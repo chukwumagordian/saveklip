@@ -43,4 +43,5 @@ export interface BlogPost {
   category: string;
   createdAt: string;
   readTime: string;
+  status?: "published" | "draft";
 }

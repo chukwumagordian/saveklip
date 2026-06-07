@@ -38,7 +38,9 @@ import {
   Facebook,
   Linkedin,
   Share2,
-  MessageCircle
+  MessageCircle,
+  List,
+  ListOrdered
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { BlogPost } from "../types";
@@ -671,8 +673,8 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
   };
 
   // Form submit for publishing new article or saving edit
-  const handlePublish = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePublish = async (e: React.FormEvent | null, forceStatus?: "published" | "draft") => {
+    if (e) e.preventDefault();
     setErrorMessage("");
     setSuccessMessage("");
 
@@ -683,6 +685,8 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
 
     try {
       setIsSubmitting(true);
+      const finalStatus = forceStatus || (editingPost?.status) || "published";
+
       const postPayload = {
         token: adminToken,
         title: newTitle,
@@ -690,7 +694,8 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
         excerpt: newExcerpt,
         category: newCategory,
         imageUrl: newImageUrl || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1000&auto=format&fit=crop&q=80",
-        author: newAuthor
+        author: newAuthor,
+        status: finalStatus
       };
 
       const url = editingPost ? `/api/blog/posts/${editingPost.id}` : "/api/blog/posts";
@@ -717,11 +722,11 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
       if (res.ok) {
         if (editingPost) {
           setPosts((prev) => prev.map((p) => p.id === editingPost.id ? data : p));
-          setSuccessMessage("Your article was updated successfully!");
+          setSuccessMessage(finalStatus === "draft" ? "Draft updated successfully!" : "Your article was updated and published successfully!");
           setEditingPost(null);
         } else {
           setPosts((prev) => [data, ...prev]);
-          setSuccessMessage("Your fantastic article was published successfully!");
+          setSuccessMessage(finalStatus === "draft" ? "Draft saved successfully!" : "Your fantastic article was published successfully!");
         }
         // Reset form variables
         setNewTitle("");
@@ -1419,6 +1424,40 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                               }`}
                             >
                               <Quote size={13} className="stroke-[2.5px]" />
+                            </button>
+
+                            <button
+                              type="button"
+                              title="Bullet List"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                document.execCommand("insertUnorderedList");
+                                setNewContent(editorRef.current?.innerHTML || "");
+                              }}
+                              className={`p-1.5 rounded-lg border transition-all hover:scale-105 cursor-pointer ${
+                                isDarkMode 
+                                  ? "bg-neutral-900 hover:bg-neutral-800 border-neutral-800 text-neutral-300 hover:text-white" 
+                                  : "bg-white hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900"
+                              }`}
+                            >
+                              <List size={13} className="stroke-[2.5px]" />
+                            </button>
+
+                            <button
+                              type="button"
+                              title="Numbered List"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                document.execCommand("insertOrderedList");
+                                setNewContent(editorRef.current?.innerHTML || "");
+                              }}
+                              className={`p-1.5 rounded-lg border transition-all hover:scale-105 cursor-pointer ${
+                                isDarkMode 
+                                  ? "bg-neutral-900 hover:bg-neutral-800 border-neutral-800 text-neutral-300 hover:text-white" 
+                                  : "bg-white hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900"
+                              }`}
+                            >
+                              <ListOrdered size={13} className="stroke-[2.5px]" />
                             </button>
 
                             <button
@@ -2224,7 +2263,8 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
 
                       <div className="flex flex-col sm:flex-row gap-3">
                         <button
-                          type="submit"
+                          type="button"
+                          onClick={() => handlePublish(null, "published")}
                           disabled={isSubmitting}
                           className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                             isSubmitting
@@ -2236,9 +2276,23 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                           <span>
                             {isSubmitting 
                               ? (editingPost ? "Saving updates..." : "Dispatching publication...") 
-                              : (editingPost ? "Save Changes" : "Publish Blog Article")
+                              : (editingPost ? "Save & Publish" : "Publish Blog Article")
                             }
                           </span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handlePublish(null, "draft")}
+                          disabled={isSubmitting}
+                          className={`py-3 px-6 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-2 cursor-pointer active:scale-98 ${
+                            isDarkMode
+                              ? "bg-neutral-900 hover:bg-neutral-850 border-neutral-800 text-amber-500 hover:text-amber-400"
+                              : "bg-amber-50/50 hover:bg-amber-100 border-amber-200 text-amber-700 hover:text-amber-800"
+                          }`}
+                        >
+                          <span className="text-xs">📁</span>
+                          <span>{editingPost ? "Save as Draft" : "Save Draft"}</span>
                         </button>
                         
                         {editingPost && (
@@ -2272,12 +2326,19 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                             }`}
                           >
                             <div className="min-w-0 flex-1">
-                              <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                                isDarkMode ? "bg-purple-950/50 text-purple-450 border border-purple-900/30" : "bg-purple-50 text-purple-700 border border-purple-100"
-                              }`}>
-                                {p.category}
-                              </span>
-                              <h5 className={`font-bold text-xs truncate mt-1.5 ${isDarkMode ? "text-neutral-200" : "text-slate-800"}`}>
+                              <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                                <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                                  isDarkMode ? "bg-purple-950/50 text-purple-450 border border-purple-900/30" : "bg-purple-50 text-purple-700 border border-purple-100"
+                                }`}>
+                                  {p.category}
+                                </span>
+                                {p.status === "draft" && (
+                                  <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-500/10 text-amber-500">
+                                    Draft
+                                  </span>
+                                )}
+                              </div>
+                              <h5 className={`font-bold text-xs truncate ${isDarkMode ? "text-neutral-200" : "text-slate-800"}`}>
                                 {p.title}
                               </h5>
                               <span className={`text-[10px] block mt-0.5 ${isDarkMode ? "text-neutral-500" : "text-slate-400"}`}>
@@ -2535,6 +2596,10 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
           /* STANDARD GRID ARTICLE LIST VIEW */
           (() => {
             const filteredPosts = posts.filter(post => {
+              // Hide drafts from public visitors if they are not logged in as admin
+              if (post.status === "draft" && !isLoggedIn) {
+                return false;
+              }
               const matchesCategory = selectedCategory === "All Articles" || post.category === selectedCategory;
               const matchesSearch = searchQuery.trim() === "" || 
                 post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -2678,7 +2743,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                             alt={post.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500 dark:brightness-[0.85]"
                           />
-                          <div className="absolute top-4 left-4">
+                          <div className="absolute top-4 left-4 flex gap-1.5 items-center">
                             <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
                               isDarkMode 
                                 ? "bg-slate-900 border-[#14B8A6]/20 text-[#14B8A6]" 
@@ -2686,6 +2751,11 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                             }`}>
                               {post.category}
                             </span>
+                            {post.status === "draft" && (
+                              <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/15 text-amber-500">
+                                Draft
+                              </span>
+                            )}
                           </div>
                           {getImageSourceText(post.imageUrl) && (
                             <div className="absolute bottom-3 right-3 z-10 select-none">

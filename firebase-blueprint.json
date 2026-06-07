@@ -57,6 +57,11 @@
         "readTime": {
           "type": "string",
           "description": "Estimated reading duration, eg '3 min read'"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["published", "draft"],
+          "description": "Status of the blog post, indicating if it is published or a draft"
         }
       },
       "required": ["id", "title", "slug", "content", "createdAt"]

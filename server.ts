@@ -42,6 +42,7 @@ interface BlogPost {
   category: string;
   createdAt: string;
   readTime: string;
+  status?: "published" | "draft";
 }
 
 function getBlogPosts(): BlogPost[] {
@@ -217,7 +218,7 @@ app.get("/api/blog/posts", async (req, res) => {
 });
 
 app.post("/api/blog/posts", async (req, res) => {
-  const { token, title, content, excerpt, category, imageUrl, author } = req.body;
+  const { token, title, content, excerpt, category, imageUrl, author, status } = req.body;
   
   if (token !== "SUPER_SECRET_ADMIN_TOKEN_123") {
     return res.status(401).json({ error: "Access denied. Invalid credentials token." });
@@ -242,7 +243,8 @@ app.post("/api/blog/posts", async (req, res) => {
     imageUrl: imageUrl || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1000&auto=format&fit=crop&q=80",
     category: category || "General Feed",
     createdAt: new Date().toISOString(),
-    readTime: `${Math.ceil(content.split(" ").length / 200) || 1} min read`
+    readTime: `${Math.ceil(content.split(" ").length / 200) || 1} min read`,
+    status: status || "published"
   };
 
   // Sync to local
@@ -272,7 +274,7 @@ app.post("/api/blog/posts", async (req, res) => {
 
 app.put("/api/blog/posts/:id", async (req, res) => {
   const { id } = req.params;
-  const { token, title, content, excerpt, category, imageUrl, author } = req.body;
+  const { token, title, content, excerpt, category, imageUrl, author, status } = req.body;
 
   if (token !== "SUPER_SECRET_ADMIN_TOKEN_123") {
     return res.status(401).json({ error: "Access denied. Invalid credentials token." });
@@ -305,6 +307,7 @@ app.put("/api/blog/posts/:id", async (req, res) => {
     author: author || existingPost.author,
     imageUrl: imageUrl || existingPost.imageUrl,
     category: category || existingPost.category,
+    status: status || existingPost.status || "published",
     readTime: `${Math.ceil(content.split(" ").length / 200) || 1} min read`
   };
 

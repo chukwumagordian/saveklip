@@ -708,38 +708,50 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
       });
 
       const text = await res.text();
+
+      if (!res.ok) {
+        let msg = `Failed to ${editingPost ? "update" : "publish"}: `;
+        try {
+          const errData = JSON.parse(text);
+          msg += errData.error || errData.message || `Error ${res.status}`;
+        } catch {
+          if (res.status === 413) {
+            msg += "The uploaded image or content text is too large. Please use an optimized image under 1-2MB.";
+          } else if (text.trim().toLowerCase().startsWith("<!doctype") || text.trim().toLowerCase().startsWith("<html")) {
+            msg += "Backend offline or returned an HTML error screen.";
+          } else {
+            msg += text.slice(0, 100) || `Error ${res.status}`;
+          }
+        }
+        setErrorMessage(msg);
+        return;
+      }
+
       let data;
       try {
         data = JSON.parse(text);
       } catch (jsonErr) {
-        if (text.trim().toLowerCase().startsWith("<!doctype") || text.trim().toLowerCase().startsWith("<html")) {
-          setErrorMessage(`Failed to ${editingPost ? "update" : "publish"}: Backend offline. Full-stack hosting (e.g. Render Web Service) required.`);
-          return;
-        }
-        throw jsonErr;
+        setErrorMessage("Failed to parse server response format.");
+        return;
       }
 
-      if (res.ok) {
-        if (editingPost) {
-          setPosts((prev) => prev.map((p) => p.id === editingPost.id ? data : p));
-          setSuccessMessage(finalStatus === "draft" ? "Draft updated successfully!" : "Your article was updated and published successfully!");
-          setEditingPost(null);
-        } else {
-          setPosts((prev) => [data, ...prev]);
-          setSuccessMessage(finalStatus === "draft" ? "Draft saved successfully!" : "Your fantastic article was published successfully!");
-        }
-        // Reset form variables
-        setNewTitle("");
-        setNewContent("");
-        setNewExcerpt("");
-        setNewImageUrl("");
-        if (editorRef.current) {
-          editorRef.current.innerHTML = "";
-        }
-        setTimeout(() => setSuccessMessage(""), 4000);
+      if (editingPost) {
+        setPosts((prev) => prev.map((p) => p.id === editingPost.id ? data : p));
+        setSuccessMessage(finalStatus === "draft" ? "Draft updated successfully!" : "Your article was updated and published successfully!");
+        setEditingPost(null);
       } else {
-        setErrorMessage(data.error || `Failed to ${editingPost ? "update" : "publish"} article.`);
+        setPosts((prev) => [data, ...prev]);
+        setSuccessMessage(finalStatus === "draft" ? "Draft saved successfully!" : "Your fantastic article was published successfully!");
       }
+      // Reset form variables
+      setNewTitle("");
+      setNewContent("");
+      setNewExcerpt("");
+      setNewImageUrl("");
+      if (editorRef.current) {
+        editorRef.current.innerHTML = "";
+      }
+      setTimeout(() => setSuccessMessage(""), 4000);
     } catch (err) {
       setErrorMessage("Network loss during publication dispatch.");
     } finally {

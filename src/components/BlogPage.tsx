@@ -121,6 +121,102 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
   const [coverInputMode, setCoverInputMode] = useState<"upload" | "url">("upload");
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
+  // States for Inline Image Inserter (Upload or URL Options)
+  const [isInlineImgModalOpen, setIsInlineImgModalOpen] = useState(false);
+  const [inlineImgMode, setInlineImgMode] = useState<"upload" | "url">("upload");
+  const [inlineImgUrl, setInlineImgUrl] = useState("");
+  const [inlineImgAlt, setInlineImgAlt] = useState("");
+  const inlineImgFileInputRef = useRef<HTMLInputElement>(null);
+
+  const openInlineImageEditor = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      savedSelectionRangeRef.current = selection.getRangeAt(0).cloneRange();
+    } else {
+      savedSelectionRangeRef.current = null;
+    }
+    setInlineImgUrl("");
+    setInlineImgAlt("");
+    setInlineImgMode("upload");
+    setIsInlineImgModalOpen(true);
+  };
+
+  const handleInlineImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Please select an image under 5MB for optimized loading.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setInlineImgUrl(dataUrl);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const insertInlineImageUrl = (url: string, altText: string) => {
+    if (!url) return;
+    
+    if (savedSelectionRangeRef.current) {
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(savedSelectionRangeRef.current);
+      }
+    } else if (editorRef.current) {
+      editorRef.current.focus();
+    }
+
+    const domain = getImageSourceText(url) || "";
+    let htmlToInsert = "";
+    if (domain) {
+      htmlToInsert = `<figure class="my-6 mx-auto block max-w-full text-center">
+  <img src="${url.trim()}" class="rounded-2xl max-w-full border border-neutral-850/10 dark:border-neutral-800/40 shadow-md block mx-auto hover:scale-[1.01] transition-transform duration-300 pointer-events-auto display-inline-img" referrerpolicy="no-referrer" alt="${altText || "Blog image"}" />
+  <figcaption class="mt-2 text-center text-[10.5px] font-mono text-neutral-400 italic">
+    Image source: ${domain}
+  </figcaption>
+</figure><p><br/></p>`;
+    } else {
+      htmlToInsert = `<figure class="my-6 mx-auto block max-w-full text-center">
+  <img src="${url.trim()}" class="rounded-2xl max-w-full border border-neutral-850/10 dark:border-neutral-800/40 shadow-md block mx-auto hover:scale-[1.01] transition-transform duration-300 pointer-events-auto display-inline-img" referrerpolicy="no-referrer" alt="${altText || "Blog image"}" />
+</figure><p><br/></p>`;
+    }
+
+    document.execCommand("insertHTML", false, htmlToInsert);
+    if (editorRef.current) {
+      setNewContent(editorRef.current.innerHTML);
+    }
+    setIsInlineImgModalOpen(false);
+  };
+
+  const insertInlineImageDataUrl = (dataUrl: string, altText: string) => {
+    if (!dataUrl) return;
+
+    if (savedSelectionRangeRef.current) {
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(savedSelectionRangeRef.current);
+      }
+    } else if (editorRef.current) {
+      editorRef.current.focus();
+    }
+
+    const htmlToInsert = `<figure class="my-6 mx-auto block max-w-full text-center">
+  <img src="${dataUrl}" class="rounded-2xl max-w-full border border-neutral-850/10 dark:border-neutral-800/40 shadow-md block mx-auto hover:scale-[1.01] transition-transform duration-300 pointer-events-auto display-inline-img" referrerpolicy="no-referrer" alt="${altText || "Uploaded image"}" />
+</figure><p><br/></p>`;
+
+    document.execCommand("insertHTML", false, htmlToInsert);
+    if (editorRef.current) {
+      setNewContent(editorRef.current.innerHTML);
+    }
+    setIsInlineImgModalOpen(false);
+  };
+
   // Categories List
   const categoriesList = [
     "All Articles",
@@ -1356,6 +1452,22 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                             >
                               <Video size={13} className="stroke-[2.5px]" />
                             </button>
+
+                            <button
+                              type="button"
+                              title="Insert Image (Upload or URL link)"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                openInlineImageEditor();
+                              }}
+                              className={`p-1.5 rounded-lg border transition-all hover:scale-105 cursor-pointer flex items-center justify-center ${
+                                isDarkMode 
+                                  ? "bg-neutral-900 hover:bg-neutral-800 border-neutral-800 text-neutral-300 hover:text-white" 
+                                  : "bg-white hover:bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900"
+                              }`}
+                            >
+                              <ImageIcon size={13} className="stroke-[2.5px]" />
+                            </button>
                           </div>
 
                           {/* Typography styling dropdown inputs */}
@@ -1933,6 +2045,216 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                                       className="px-4.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-purple-650 hover:bg-purple-600 text-white shadow-md shadow-purple-500/10"
                                     >
                                       Embed Video
+                                    </button>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+
+                          {/* Inline Image Inserter Modal / Popover */}
+                          <AnimatePresence>
+                            {isInlineImgModalOpen && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                className={`absolute border rounded-3xl p-5 shadow-2xl z-50 left-4 right-4 top-4 max-w-lg mx-auto ${
+                                  isDarkMode
+                                    ? "bg-neutral-950 border-neutral-800 text-neutral-200 shadow-purple-950/25"
+                                    : "bg-white border-slate-205 text-slate-800 shadow-slate-200/50"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-4">
+                                  <div className="flex items-center gap-2">
+                                    <ImageIcon size={16} className="text-purple-500" />
+                                    <h4 className="text-xs font-extrabold uppercase tracking-widest">
+                                      Insert Inline Image
+                                    </h4>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setIsInlineImgModalOpen(false);
+                                      setInlineImgUrl("");
+                                      setInlineImgAlt("");
+                                    }}
+                                    className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
+                                      isDarkMode
+                                        ? "bg-neutral-900 border-neutral-800 hover:bg-neutral-850 text-neutral-400 hover:text-white"
+                                        : "bg-slate-50 border-slate-105 hover:bg-slate-100 text-slate-500 hover:text-slate-800"
+                                    }`}
+                                  >
+                                    <X size={12} />
+                                  </button>
+                                </div>
+
+                                <div className="space-y-4 font-sans">
+                                  {/* Section selection tabs */}
+                                  <div className="flex items-center gap-1.5 p-1 rounded-xl bg-neutral-100 dark:bg-neutral-900/60 border border-neutral-850/5 dark:border-neutral-800/45">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setInlineImgMode("upload");
+                                        setInlineImgUrl("");
+                                      }}
+                                      className={`flex-1 py-1.5 px-3 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                                        inlineImgMode === "upload"
+                                          ? "bg-purple-600 text-white shadow-sm"
+                                          : isDarkMode
+                                          ? "text-neutral-400 hover:text-white"
+                                          : "text-slate-650 hover:text-slate-950"
+                                      }`}
+                                    >
+                                      📁 Upload from Device
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setInlineImgMode("url");
+                                        setInlineImgUrl("");
+                                      }}
+                                      className={`flex-1 py-1.5 px-3 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                                        inlineImgMode === "url"
+                                          ? "bg-purple-600 text-white shadow-sm"
+                                          : isDarkMode
+                                          ? "text-neutral-400 hover:text-white"
+                                          : "text-slate-650 hover:text-slate-950"
+                                      }`}
+                                    >
+                                      🔗 From Image Link
+                                    </button>
+                                  </div>
+
+                                  {/* Upload Section view content */}
+                                  {inlineImgMode === "upload" ? (
+                                    <div className="space-y-3">
+                                      <input
+                                        type="file"
+                                        ref={inlineImgFileInputRef}
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleInlineImageFileChange}
+                                      />
+                                      
+                                      {!inlineImgUrl ? (
+                                        <div
+                                          onClick={() => inlineImgFileInputRef.current?.click()}
+                                          className={`border border-dashed rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all hover:border-purple-500/50 ${
+                                            isDarkMode
+                                              ? "border-neutral-800 bg-neutral-900/40 hover:bg-neutral-900"
+                                              : "border-slate-200 bg-slate-50/50 hover:bg-slate-50"
+                                          }`}
+                                        >
+                                          <Upload size={24} className="text-purple-400 mb-2" />
+                                          <span className="text-[11px] font-bold">Select image from your device</span>
+                                          <span className={`text-[9px] mt-1 ${isDarkMode ? "text-neutral-500" : "text-slate-400"}`}>
+                                            Supports PNG, JPG, WEBP, GIF (Max 5MB)
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <div className="space-y-3">
+                                          <div className="relative rounded-2xl overflow-hidden border border-neutral-800/10 dark:border-neutral-800/40 max-h-40 bg-neutral-950 flex items-center justify-center">
+                                            <img
+                                              src={inlineImgUrl}
+                                              alt="Upload preview"
+                                              className="max-h-40 object-contain"
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => setInlineImgUrl("")}
+                                              className="absolute top-2 right-2 p-1 bg-black/75 hover:bg-black rounded-lg text-white border border-white/10 transition-colors"
+                                              title="Remove image preview"
+                                            >
+                                              <Trash2 size={11} />
+                                            </button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-3">
+                                      <div className="space-y-1">
+                                        <label className={`block text-[9.5px] font-bold uppercase tracking-wider ${isDarkMode ? "text-neutral-400" : "text-slate-505"}`}>
+                                          Image Link / URL Address
+                                        </label>
+                                        <input
+                                          type="text"
+                                          placeholder="e.g. https://images.unsplash.com/photo-..."
+                                          value={inlineImgUrl}
+                                          onChange={(e) => setInlineImgUrl(e.target.value)}
+                                          className={`w-full px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none transition-all ${
+                                            isDarkMode
+                                              ? "bg-neutral-900/85 border-neutral-800 text-white focus:border-purple-500 hover:bg-neutral-850"
+                                              : "bg-slate-50 border-slate-200 text-slate-800 focus:border-purple-500 hover:bg-slate-100"
+                                          }`}
+                                          autoFocus
+                                        />
+                                      </div>
+
+                                      {inlineImgUrl && inlineImgUrl.trim().startsWith("http") && (
+                                        <div className="rounded-2xl overflow-hidden border border-neutral-800/10 dark:border-neutral-800/40 max-h-40 bg-neutral-950 flex items-center justify-center">
+                                          <img
+                                            src={inlineImgUrl}
+                                            alt="Link preview"
+                                            className="max-h-40 object-contain"
+                                            onError={(e) => {
+                                              (e.target as HTMLElement).style.display = 'none';
+                                            }}
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* Alt Text / Caption field */}
+                                  <div className="space-y-1">
+                                    <label className={`block text-[9.5px] font-bold uppercase tracking-wider ${isDarkMode ? "text-neutral-400" : "text-slate-505"}`}>
+                                      Alt Text / Image Caption (Optional)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="e.g. Figure 1: Infographics or photo credentials"
+                                      value={inlineImgAlt}
+                                      onChange={(e) => setInlineImgAlt(e.target.value)}
+                                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none transition-all ${
+                                        isDarkMode
+                                          ? "bg-neutral-900/85 border-neutral-800 text-white focus:border-purple-500 hover:bg-neutral-850"
+                                          : "bg-slate-50 border-slate-200 text-slate-800 focus:border-purple-500 hover:bg-slate-100"
+                                      }`}
+                                    />
+                                  </div>
+
+                                  {/* Action Buttons */}
+                                  <div className="flex items-center justify-end gap-2.5 pt-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setIsInlineImgModalOpen(false);
+                                        setInlineImgUrl("");
+                                        setInlineImgAlt("");
+                                      }}
+                                      className={`px-4.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                                        isDarkMode
+                                          ? "bg-neutral-900 hover:bg-neutral-850 border-neutral-800 text-neutral-400 hover:text-white"
+                                          : "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-650 hover:text-slate-850"
+                                      }`}
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={!inlineImgUrl}
+                                      onClick={() => {
+                                        if (inlineImgMode === "upload") {
+                                          insertInlineImageDataUrl(inlineImgUrl, inlineImgAlt);
+                                        } else {
+                                          insertInlineImageUrl(inlineImgUrl, inlineImgAlt);
+                                        }
+                                      }}
+                                      className={`px-4.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer bg-purple-650 hover:bg-purple-600 text-white shadow-md shadow-purple-500/10 disabled:opacity-40 disabled:cursor-not-allowed`}
+                                    >
+                                      Insert Image
                                     </button>
                                   </div>
                                 </div>

@@ -149,6 +149,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
 
   // Navigation within blog
   const [activeArticle, setActiveArticle] = useState<BlogPost | null>(null);
+  const [hasInitializedFromUrl, setHasInitializedFromUrl] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [adminToken, setAdminToken] = useState("");
@@ -570,20 +571,29 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
 
   // Synchronize slug from URL Search Params to automatically open/view activeArticle
   useEffect(() => {
-    if (typeof window === "undefined" || posts.length === 0) return;
+    if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const slug = params.get("slug");
-    if (slug) {
+
+    // If there is no slug in the URL on load, consider initialization complete
+    if (!slug) {
+      setHasInitializedFromUrl(true);
+      return;
+    }
+
+    // Wait until posts are successfully loaded
+    if (posts.length > 0) {
       const match = posts.find((p) => p.slug === slug);
       if (match) {
         setActiveArticle(match);
       }
+      setHasInitializedFromUrl(true);
     }
   }, [posts]);
 
   // Synchronize URL search params with activeArticle changes
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !hasInitializedFromUrl) return;
     const params = new URLSearchParams(window.location.search);
     const slug = params.get("slug");
     
@@ -593,10 +603,10 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
       }
     } else {
       if (slug) {
-        window.history.pushState(null, "", "/blog");
+        window.history.pushState(null, "", "/?page=blog");
       }
     }
-  }, [activeArticle]);
+  }, [activeArticle, hasInitializedFromUrl]);
 
   // Listen to popstate event to synchronize active article on Back/Forward clicks
   useEffect(() => {

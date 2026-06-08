@@ -79,6 +79,60 @@ function getImageSourceText(url: string): string | null {
   }
 }
 
+// Compress image helper using HTML5 canvas
+function compressImage(file: File, maxWidth: number = 1000, maxHeight: number = 1000, quality: number = 0.75): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (!dataUrl) {
+        reject(new Error("Failed to read file"));
+        return;
+      }
+      
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+
+        // Scale keeping aspect ratio
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(dataUrl); // Fallback to original
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        // Output as jpeg with custom quality
+        const compressed = canvas.toDataURL("image/jpeg", quality);
+        resolve(compressed);
+      };
+      img.onerror = () => {
+        resolve(dataUrl); // Fallback on image load error
+      };
+      img.src = dataUrl;
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
 interface BlogPageProps {
   isDarkMode: boolean;
   setCurrentPage: (page: any) => void;
@@ -143,21 +197,19 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
     setIsInlineImgModalOpen(true);
   };
 
-  const handleInlineImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInlineImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Please select an image under 5MB for optimized loading.");
-      return;
+    
+    setErrorMessage("Compressing and optimizing inline image...");
+    try {
+      const compressedDataUrl = await compressImage(file, 1000, 1000, 0.75);
+      setInlineImgUrl(compressedDataUrl);
+      setSuccessMessage("Inline image optimized successfully!");
+      setTimeout(() => setSuccessMessage(""), 2000);
+    } catch (err) {
+      setErrorMessage("Failed to process inline image upload.");
     }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        setInlineImgUrl(dataUrl);
-      }
-    };
-    reader.readAsDataURL(file);
   };
 
   const insertInlineImageUrl = (url: string, altText: string) => {
@@ -678,7 +730,9 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
     setErrorMessage("");
     setSuccessMessage("");
 
-    if (!newTitle.trim() || !newContent.trim()) {
+    const currentEditorContent = editorRef.current ? editorRef.current.innerHTML : newContent;
+
+    if (!newTitle.trim() || !currentEditorContent.trim() || currentEditorContent === "<p><br></p>" || currentEditorContent === "<br>") {
       setErrorMessage("Please fill out the title and content fields.");
       return;
     }
@@ -690,7 +744,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
       const postPayload = {
         token: adminToken,
         title: newTitle,
-        content: newContent,
+        content: currentEditorContent,
         excerpt: newExcerpt,
         category: newCategory,
         imageUrl: newImageUrl || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1000&auto=format&fit=crop&q=80",
@@ -1222,23 +1276,18 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                               ref={coverFileInputRef}
                               accept="image/*"
                               className="hidden"
-                              onChange={(e) => {
+                              onChange={async (e) => {
                                 const file = e.target.files?.[0];
                                 if (!file) return;
-                                if (file.size > 8 * 1024 * 1024) {
-                                  setErrorMessage("Select a cover image under 8MB for optimized performance.");
-                                  return;
+                                setErrorMessage("Optimizing and resizing cover image...");
+                                try {
+                                  const compressedDataUrl = await compressImage(file, 1200, 800, 0.75);
+                                  setNewImageUrl(compressedDataUrl);
+                                  setSuccessMessage("Cover image uploaded and optimized successfully!");
+                                  setTimeout(() => setSuccessMessage(""), 2500);
+                                } catch (err) {
+                                  setErrorMessage("Failed to optimize cover image.");
                                 }
-                                const reader = new FileReader();
-                                reader.onload = (event) => {
-                                  const dataUrl = event.target?.result as string;
-                                  if (dataUrl) {
-                                    setNewImageUrl(dataUrl);
-                                    setSuccessMessage("Cover image uploaded and processed!");
-                                    setTimeout(() => setSuccessMessage(""), 2000);
-                                  }
-                                };
-                                reader.readAsDataURL(file);
                               }}
                             />
                             <div

@@ -65,12 +65,37 @@
         }
       },
       "required": ["id", "title", "slug", "content", "createdAt"]
+    },
+    "blog_image": {
+      "title": "Blog Image",
+      "description": "An image document containing the base64 payload and MIME mapping",
+      "type": "object",
+      "properties": {
+        "base64": {
+          "type": "string",
+          "description": "The base64 encoded dataUrl of the image"
+        },
+        "mimeType": {
+          "type": "string",
+          "description": "The MIME type of the image, e.g. image/jpeg"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO timestamp of upload"
+        }
+      },
+      "required": ["base64", "mimeType", "createdAt"]
     }
   },
   "firestore": {
     "blog_posts/{postId}": {
       "schema": "blog_post",
       "description": "Global collection containing all published blog articles"
+    },
+    "blog_images/{imageId}": {
+      "schema": "blog_image",
+      "description": "Separate optimized image storage to bypass document size and query limits"
     },
     "system_settings/{settingsId}": {
       "schema": "system_settings",

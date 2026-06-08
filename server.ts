@@ -152,6 +152,159 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
+function sanitizeForFirestore(obj: any): any {
+  if (obj === null || obj === undefined) return null;
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeForFirestore);
+  }
+  if (typeof obj === "object") {
+    const clean: any = {};
+    for (const key of Object.keys(obj)) {
+      if (obj[key] !== undefined) {
+        clean[key] = sanitizeForFirestore(obj[key]);
+      }
+    }
+    return clean;
+  }
+  return obj;
+}
+
+const UPLOADS_DIR = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+function parseDataUrl(dataUrl: string) {
+  if (typeof dataUrl !== "string") return null;
+  const cleanUrl = dataUrl.trim().replace(/[\r\n\s]+/g, "");
+  const matches = cleanUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!matches || matches.length !== 3) {
+    return null;
+  }
+  return {
+    mimeType: matches[1],
+    base64Data: matches[2]
+  };
+}
+
+// Automatically processes base64 images inside post and uploads them to separate Firestore collection documents
+async function processBase64InPost(post: { content: string; imageUrl: string }) {
+  let content = post.content || "";
+  let imageUrl = post.imageUrl || "";
+
+  const uploadBase64 = async (base64Url: string): Promise<string> => {
+    const parsed = parseDataUrl(base64Url);
+    if (!parsed) return base64Url;
+
+    const cleanedUrl = base64Url.trim().replace(/[\r\n\s]+/g, "");
+    const imageId = "img_" + Math.random().toString(36).substr(2, 9) + "_" + Date.now();
+    const extension = parsed.mimeType.split("/")[1] || "jpg";
+    const fileName = `${imageId}.${extension}`;
+    const localPath = path.join(UPLOADS_DIR, fileName);
+
+    // Save locally
+    try {
+      fs.writeFileSync(localPath, parsed.base64Data, "base64");
+    } catch (fsErr) {
+      console.error("Local file write failure in automatic processor:", fsErr);
+    }
+
+    // Sync to Firestore
+    const db = getFirestoreDb();
+    if (db) {
+      try {
+        const docRef = doc(db, "blog_images", imageId);
+        await setDoc(docRef, {
+          base64: cleanedUrl,
+          mimeType: parsed.mimeType,
+          createdAt: new Date().toISOString()
+        });
+        console.log(`Successfully persisted auto-processed image ${imageId} to Firestore.`);
+      } catch (dbErr: any) {
+        console.error(`Failed to store auto-processed image ${imageId} in Firestore:`, dbErr.message || dbErr);
+      }
+    }
+
+    return `/api/blog/images/${fileName}`;
+  };
+
+  // 1. Check & upload cover image if it's base64
+  const trimmedImageUrl = imageUrl.trim();
+  if (trimmedImageUrl && trimmedImageUrl.startsWith("data:")) {
+    imageUrl = await uploadBase64(trimmedImageUrl);
+  }
+
+  // 2. Discover and upload all base64 images inside the rich text content HTML matching: src="data:..."
+  const regex = /src=["'](data:image\/[^"']+)["']/g;
+  let match;
+  const base64ImagesToProcess: string[] = [];
+  while ((match = regex.exec(content)) !== null) {
+    base64ImagesToProcess.push(match[1]);
+  }
+
+  // Process and replace each
+  for (const base64Str of base64ImagesToProcess) {
+    try {
+      const uploadedUrl = await uploadBase64(base64Str);
+      content = content.split(base64Str).join(uploadedUrl);
+    } catch (err) {
+      console.error("Failed auto-processing inline image:", err);
+    }
+  }
+
+  return { content, imageUrl };
+}
+
+// Serve uploaded/processed images
+app.get("/api/blog/images/:fileName", async (req, res) => {
+  const { fileName } = req.params;
+  const localPath = path.join(UPLOADS_DIR, fileName);
+
+  // If local file exists, serve it directly
+  if (fs.existsSync(localPath)) {
+    const ext = path.extname(fileName).toLowerCase();
+    let mimeType = "image/jpeg";
+    if (ext === ".png") mimeType = "image/png";
+    else if (ext === ".gif") mimeType = "image/gif";
+    else if (ext === ".webp") mimeType = "image/webp";
+
+    res.setHeader("Content-Type", mimeType);
+    res.setHeader("Cache-Control", "public, max-age=31536000"); // Cache for 1 year
+    return res.sendFile(localPath);
+  }
+
+  // If not, fetch from Firestore and recreate local file cache
+  const db = getFirestoreDb();
+  if (db) {
+    try {
+      const imageId = fileName.split(".")[0];
+      const docRef = doc(db, "blog_images", imageId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data && data.base64) {
+          const parsed = parseDataUrl(data.base64);
+          if (parsed) {
+            try {
+              fs.writeFileSync(localPath, parsed.base64Data, "base64");
+            } catch (writeErr) {
+              console.error("Failed to write to local directory cache:", writeErr);
+            }
+            res.setHeader("Content-Type", parsed.mimeType);
+            res.setHeader("Cache-Control", "public, max-age=31536000");
+            const buffer = Buffer.from(parsed.base64Data, "base64");
+            return res.send(buffer);
+          }
+        }
+      }
+    } catch (dbErr) {
+      console.error("Firestore image fetch failed:", dbErr);
+    }
+  }
+
+  res.status(404).send("Image not found");
+});
+
 // Blog endpoints
 app.get("/api/blog/posts", async (req, res) => {
   const db = getFirestoreDb();
@@ -219,15 +372,17 @@ app.get("/api/blog/posts", async (req, res) => {
 });
 
 app.post("/api/blog/posts", async (req, res) => {
-  const { token, title, content, excerpt, category, imageUrl, author, status } = req.body;
+  const { token, title, content: rawContent, excerpt, category, imageUrl: rawImageUrl, author, status } = req.body;
   
   if (token !== "SUPER_SECRET_ADMIN_TOKEN_123") {
     return res.status(401).json({ error: "Access denied. Invalid credentials token." });
   }
 
-  if (!title || !content) {
+  if (!title || !rawContent) {
     return res.status(400).json({ error: "Title and content fields are required." });
   }
+
+  const { content, imageUrl } = await processBase64InPost({ content: rawContent, imageUrl: rawImageUrl });
 
   const slug = title
     .toLowerCase()
@@ -258,15 +413,11 @@ app.post("/api/blog/posts", async (req, res) => {
   if (db) {
     try {
       const docRef = doc(db, "blog_posts", newPost.id);
-      await setDoc(docRef, newPost);
+      await setDoc(docRef, sanitizeForFirestore(newPost));
       console.log("Successfully posted new blog entry to Firestore cloud database.");
     } catch (dbErr: any) {
-      console.log("Failed to sync post to Firestore store:", dbErr.message || dbErr);
-      try {
-        handleFirestoreError(dbErr, OperationType.WRITE, `blog_posts/${newPost.id}`);
-      } catch (err) {
-        // Log handled error
-      }
+      console.error("Failed to sync post to Firestore store:", dbErr.message || dbErr);
+      return res.status(500).json({ error: `Cloud database synchronization failed: ${dbErr.message || dbErr}` });
     }
   }
 
@@ -275,15 +426,17 @@ app.post("/api/blog/posts", async (req, res) => {
 
 app.put("/api/blog/posts/:id", async (req, res) => {
   const { id } = req.params;
-  const { token, title, content, excerpt, category, imageUrl, author, status } = req.body;
+  const { token, title, content: rawContent, excerpt, category, imageUrl: rawImageUrl, author, status } = req.body;
 
   if (token !== "SUPER_SECRET_ADMIN_TOKEN_123") {
     return res.status(401).json({ error: "Access denied. Invalid credentials token." });
   }
 
-  if (!title || !content) {
+  if (!title || !rawContent) {
     return res.status(400).json({ error: "Title and content fields are required." });
   }
+
+  const { content, imageUrl } = await processBase64InPost({ content: rawContent, imageUrl: rawImageUrl });
 
   const db = getFirestoreDb();
   let existingPost: BlogPost | null = null;
@@ -320,6 +473,7 @@ app.put("/api/blog/posts/:id", async (req, res) => {
 
   const updatedPost: BlogPost = {
     ...existingPost,
+    id: id,
     title,
     slug,
     content,
@@ -342,15 +496,11 @@ app.put("/api/blog/posts/:id", async (req, res) => {
   if (db) {
     try {
       const docRef = doc(db, "blog_posts", id);
-      await setDoc(docRef, updatedPost);
+      await setDoc(docRef, sanitizeForFirestore(updatedPost));
       console.log("Successfully updated blog entry in Firestore cloud database.");
     } catch (dbErr: any) {
-      console.log("Failed to sync updated post to Firestore store:", dbErr.message || dbErr);
-      try {
-        handleFirestoreError(dbErr, OperationType.WRITE, `blog_posts/${id}`);
-      } catch (err) {
-        // Log handled error
-      }
+      console.error("Failed to sync updated post to Firestore store:", dbErr.message || dbErr);
+      return res.status(500).json({ error: `Cloud database synchronization failed: ${dbErr.message || dbErr}` });
     }
   }
 

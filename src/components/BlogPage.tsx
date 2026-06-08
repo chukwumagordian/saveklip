@@ -569,11 +569,19 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
     }
   }, []);
 
-  // Synchronize slug from URL Search Params to automatically open/view activeArticle
+  // Synchronize slug from URL Search Params or pathname to automatically open/view activeArticle
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
-    const slug = params.get("slug");
+    let slug = params.get("slug");
+
+    // Also look at pathname for clean permalinks: /blog/:slug
+    if (!slug) {
+      const parts = window.location.pathname.split("/").filter(Boolean);
+      if (parts[0] === "blog" && parts[1]) {
+        slug = parts[1];
+      }
+    }
 
     // If there is no slug in the URL on load, consider initialization complete
     if (!slug) {
@@ -591,19 +599,25 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
     }
   }, [posts]);
 
-  // Synchronize URL search params with activeArticle changes
+  // Synchronize URL path with activeArticle changes
   useEffect(() => {
     if (typeof window === "undefined" || !hasInitializedFromUrl) return;
     const params = new URLSearchParams(window.location.search);
-    const slug = params.get("slug");
+    let currentSlug = params.get("slug");
+    if (!currentSlug) {
+      const parts = window.location.pathname.split("/").filter(Boolean);
+      if (parts[0] === "blog" && parts[1]) {
+        currentSlug = parts[1];
+      }
+    }
     
     if (activeArticle) {
-      if (slug !== activeArticle.slug) {
-        window.history.pushState(null, "", `/?page=blog&slug=${activeArticle.slug}`);
+      if (currentSlug !== activeArticle.slug) {
+        window.history.pushState(null, "", `/blog/${activeArticle.slug}`);
       }
     } else {
-      if (slug) {
-        window.history.pushState(null, "", "/?page=blog");
+      if (currentSlug || window.location.pathname !== "/blog") {
+        window.history.pushState(null, "", "/blog");
       }
     }
   }, [activeArticle, hasInitializedFromUrl]);
@@ -613,7 +627,13 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
     if (typeof window === "undefined") return;
     const handlePopStateStatus = () => {
       const params = new URLSearchParams(window.location.search);
-      const slug = params.get("slug");
+      let slug = params.get("slug");
+      if (!slug) {
+        const parts = window.location.pathname.split("/").filter(Boolean);
+        if (parts[0] === "blog" && parts[1]) {
+          slug = parts[1];
+        }
+      }
       if (slug && posts.length > 0) {
         const match = posts.find((p) => p.slug === slug);
         if (match) {
@@ -2605,7 +2625,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                   <div className="flex items-center gap-2 shrink-0">
                     {/* WhatsApp */}
                     <a
-                      href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Check out this valuable article: "${activeArticle.title}" - ${window.location.origin}?page=blog&slug=${activeArticle.slug}`)}`}
+                      href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Check out this valuable article: "${activeArticle.title}" - ${window.location.origin}/blog/${activeArticle.slug}`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] shadow-sm shadow-[#25D366]/15"
@@ -2621,7 +2641,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
 
                     {/* Telegram */}
                     <a
-                      href={`https://t.me/share/url?url=${encodeURIComponent(`${window.location.origin}?page=blog&slug=${activeArticle.slug}`)}&text=${encodeURIComponent(`Check out this insights article: "${activeArticle.title}"`)}`}
+                      href={`https://t.me/share/url?url=${encodeURIComponent(`${window.location.origin}/blog/${activeArticle.slug}`)}&text=${encodeURIComponent(`Check out this insights article: "${activeArticle.title}"`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center w-9 h-9 rounded-xl text-white bg-[#0088cc] hover:bg-[#0077b3] transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] shadow-sm shadow-[#0088cc]/15"
@@ -2632,7 +2652,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
 
                     {/* Facebook */}
                     <a
-                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${window.location.origin}?page=blog&slug=${activeArticle.slug}`)}`}
+                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${window.location.origin}/blog/${activeArticle.slug}`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center w-9 h-9 rounded-xl text-white bg-[#1877F2] hover:bg-[#156ad6] transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] shadow-sm shadow-[#1877F2]/15"
@@ -2643,7 +2663,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
 
                     {/* LinkedIn */}
                     <a
-                      href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${window.location.origin}?page=blog&slug=${activeArticle.slug}`)}`}
+                      href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${window.location.origin}/blog/${activeArticle.slug}`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center w-9 h-9 rounded-xl text-white bg-[#0A66C2] hover:bg-[#0958a8] transition-all duration-200 hover:scale-[1.05] active:scale-[0.95] shadow-sm shadow-[#0A66C2]/15"
@@ -2655,7 +2675,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                     {/* Copy Link */}
                     <button
                       onClick={() => {
-                        const url = `${window.location.origin}?page=blog&slug=${activeArticle.slug}`;
+                        const url = `${window.location.origin}/blog/${activeArticle.slug}`;
                         navigator.clipboard.writeText(url);
                         setCopied(true);
                         setTimeout(() => setCopied(false), 2500);

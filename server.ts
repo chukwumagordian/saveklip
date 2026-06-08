@@ -187,7 +187,7 @@ function parseDataUrl(dataUrl: string) {
   };
 }
 
-// Automatically processes base64 images inside post and uploads them to separate Firestore collection documents
+// Automatically processes base64 images and external link URLs inside post, saving them locally and to Firestore to prevent external link indexing by search engines
 async function processBase64InPost(post: { content: string; imageUrl: string }) {
   let content = post.content || "";
   let imageUrl = post.imageUrl || "";
@@ -228,37 +228,142 @@ async function processBase64InPost(post: { content: string; imageUrl: string }) 
     return `/api/blog/images/${fileName}`;
   };
 
-  // 1. Check & upload cover image if it's base64
+  const downloadExternalImage = async (urlStr: string): Promise<string> => {
+    const url = urlStr.trim();
+    if (!url || (!url.startsWith("http://") && !url.startsWith("https://"))) {
+      return url;
+    }
+
+    // Skip downloading if it is already our local path
+    if (url.includes("/api/blog/images/")) {
+      return url;
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12-second timeout
+
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Accept": "image/*, */*"
+        }
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        console.warn(`Failed to fetch external image from ${url}. Status: ${response.status}`);
+        return url;
+      }
+
+      const contentType = response.headers.get("content-type") || "image/jpeg";
+      if (!contentType.startsWith("image/")) {
+        console.warn(`External image URL does not point to a valid image. Type: ${contentType}`);
+        return url;
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Generate a unique image ID
+      const imageId = "img_ext_" + Math.random().toString(36).substr(2, 9) + "_" + Date.now();
+      const extension = contentType.split("/")[1]?.split(";")[0]?.replace("jpeg", "jpg") || "jpg";
+      const fileName = `${imageId}.${extension}`;
+      const localPath = path.join(UPLOADS_DIR, fileName);
+
+      // Save locally
+      fs.writeFileSync(localPath, buffer);
+
+      // Persist in Firestore for durability/container recycle restoration
+      const db = getFirestoreDb();
+      if (db) {
+        try {
+          const docRef = doc(db, "blog_images", imageId);
+          await setDoc(docRef, {
+            base64: `data:${contentType};base64,${buffer.toString("base64")}`,
+            mimeType: contentType,
+            createdAt: new Date().toISOString()
+          });
+          console.log(`Successfully cached downloaded image ${imageId} to Firestore.`);
+        } catch (dbErr: any) {
+          console.error(`Failed to save downloaded image cache ${imageId} to Firestore:`, dbErr.message || dbErr);
+        }
+      }
+
+      return `/api/blog/images/${fileName}`;
+    } catch (err: any) {
+      console.error(`Error downloading external image from ${url}:`, err.message || err);
+      return url; // fallback to original on failure
+    }
+  };
+
+  // 1. Process cover image:
+  // (a) Base64 string -> convert to local file
+  // (b) External URL -> download and save locally to ensure it is served from our domain
   const trimmedImageUrl = imageUrl.trim();
-  if (trimmedImageUrl && trimmedImageUrl.startsWith("data:")) {
-    imageUrl = await uploadBase64(trimmedImageUrl);
+  if (trimmedImageUrl) {
+    if (trimmedImageUrl.startsWith("data:")) {
+      imageUrl = await uploadBase64(trimmedImageUrl);
+    } else if (trimmedImageUrl.startsWith("http://") || trimmedImageUrl.startsWith("https://")) {
+      imageUrl = await downloadExternalImage(trimmedImageUrl);
+    }
   }
 
   // 2. Discover and upload all base64 images inside the rich text content HTML matching: src="data:..."
-  const regex = /src=["'](data:image\/[^"']+)["']/g;
+  const base64Regex = /src=["'](data:image\/[^"']+)["']/g;
   let match;
   const base64ImagesToProcess: string[] = [];
-  while ((match = regex.exec(content)) !== null) {
+  while ((match = base64Regex.exec(content)) !== null) {
     base64ImagesToProcess.push(match[1]);
   }
 
-  // Process and replace each
   for (const base64Str of base64ImagesToProcess) {
     try {
       const uploadedUrl = await uploadBase64(base64Str);
       content = content.split(base64Str).join(uploadedUrl);
     } catch (err) {
-      console.error("Failed auto-processing inline image:", err);
+      console.error("Failed auto-processing inline base64 image:", err);
+    }
+  }
+
+  // 3. Discover and download all external URL image links inside the rich text content HTML matching: src="http..."
+  const externalUrlRegex = /src=["'](https?:\/\/[^"']+)["']/g;
+  let extMatch;
+  const externalImagesToProcess: string[] = [];
+  while ((extMatch = externalUrlRegex.exec(content)) !== null) {
+    const url = extMatch[1];
+    // Don't redownload already cached images
+    if (!url.includes("/api/blog/images/")) {
+      externalImagesToProcess.push(url);
+    }
+  }
+
+  for (const extUrl of externalImagesToProcess) {
+    try {
+      const localUrl = await downloadExternalImage(extUrl);
+      content = content.replace(new RegExp(escapeRegExp(extUrl), 'g'), localUrl);
+    } catch (err) {
+      console.error("Failed auto-processing inline external URL image:", err);
     }
   }
 
   return { content, imageUrl };
 }
 
+// Utility to escape string for regex replacement safely
+function escapeRegExp(string: string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // Serve uploaded/processed images
 app.get("/api/blog/images/:fileName", async (req, res) => {
   const { fileName } = req.params;
   const localPath = path.join(UPLOADS_DIR, fileName);
+
+  // Instruct search engine crawlers not to index or follow these image assets
+  res.setHeader("X-Robots-Tag", "noindex, nofollow, nosnippet");
 
   // If local file exists, serve it directly
   if (fs.existsSync(localPath)) {

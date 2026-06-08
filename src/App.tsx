@@ -158,10 +158,15 @@ export default function App() {
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<"home" | "tiktok" | "instagram" | "about" | "contact" | "privacy" | "terms" | "dmca" | "blog">(() => {
     if (typeof window === "undefined") return "home";
-    const path = window.location.pathname.replace(/^\//, "").split("/")[0].toLowerCase();
+    const params = new URLSearchParams(window.location.search);
+    const pageParam = params.get("page")?.toLowerCase();
     const validPages: ("home" | "tiktok" | "instagram" | "about" | "contact" | "privacy" | "terms" | "dmca" | "blog")[] = [
       "tiktok", "instagram", "about", "contact", "privacy", "terms", "dmca", "blog"
     ];
+    if (pageParam && (validPages as string[]).includes(pageParam)) {
+      return pageParam as any;
+    }
+    const path = window.location.pathname.replace(/^\//, "").split("/")[0].toLowerCase();
     if (validPages.indexOf(path as any) !== -1) {
       return path as any;
     }
@@ -175,6 +180,15 @@ export default function App() {
 
     const currentPath = window.location.pathname.replace(/^\//, "").split("/")[0].toLowerCase();
     const pagePath = currentPage === "home" ? "" : currentPage;
+    
+    const params = new URLSearchParams(window.location.search);
+    const pageParam = params.get("page")?.toLowerCase();
+    
+    // If the active state matches what's in search parameters (e.g., blog), avoid wiping parameters
+    if (currentPage === "blog" && (pageParam === "blog" || currentPath === "blog")) {
+      return;
+    }
+
     if (currentPath !== pagePath) {
       window.history.pushState(null, "", "/" + pagePath);
     }
@@ -184,10 +198,17 @@ export default function App() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handlePopState = () => {
-      const path = window.location.pathname.replace(/^\//, "").split("/")[0].toLowerCase();
+      const params = new URLSearchParams(window.location.search);
+      const pageParam = params.get("page")?.toLowerCase();
       const validPages: ("home" | "tiktok" | "instagram" | "about" | "contact" | "privacy" | "terms" | "dmca" | "blog")[] = [
         "tiktok", "instagram", "about", "contact", "privacy", "terms", "dmca", "blog"
       ];
+      if (pageParam && (validPages as string[]).includes(pageParam)) {
+        setCurrentPage(pageParam as any);
+        return;
+      }
+
+      const path = window.location.pathname.replace(/^\//, "").split("/")[0].toLowerCase();
       if (validPages.indexOf(path as any) !== -1) {
         setCurrentPage(path as any);
       } else {
@@ -1383,7 +1404,7 @@ export default function App() {
           </p>
 
           <div className={`text-[10px] ${isDarkMode ? "text-slate-600" : "text-slate-400"}`}>
-            {t.copyrightText || "© 2026 SaveKlip Systems. Realized in compliance with high performance web protocols."}
+            {t.copyrightText || "© 2026 Gordian. Realized in compliance with high performance web protocols."}
           </div>
         </div>
       </footer>

@@ -338,7 +338,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
     }
 
     const displayText = targetLinkText.trim() || targetLinkUrl.trim();
-    const linkHTML = `<a href="${finalUrl}" class="text-purple-500 hover:text-purple-600 dark:text-purple-400 dark:hover:text-purple-300 underline font-semibold transition-colors" target="${isExternalLink ? "_blank" : "_self"}" rel="${isExternalLink ? "noopener noreferrer" : ""}">${displayText}</a>`;
+    const linkHTML = `<a href="${finalUrl}" class="text-purple-500 hover:text-purple-600 dark:text-purple-400 dark:hover:text-purple-300 underline font-semibold transition-colors" target="${isExternalLink ? "_blank" : "_self"}" rel="${isExternalLink ? "nofollow noopener noreferrer" : ""}">${displayText}</a>`;
 
     document.execCommand("insertHTML", false, linkHTML);
     if (editorRef.current) {
@@ -567,6 +567,55 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
       setAdminToken(savedToken);
     }
   }, []);
+
+  // Synchronize slug from URL Search Params to automatically open/view activeArticle
+  useEffect(() => {
+    if (typeof window === "undefined" || posts.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("slug");
+    if (slug) {
+      const match = posts.find((p) => p.slug === slug);
+      if (match) {
+        setActiveArticle(match);
+      }
+    }
+  }, [posts]);
+
+  // Synchronize URL search params with activeArticle changes
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("slug");
+    
+    if (activeArticle) {
+      if (slug !== activeArticle.slug) {
+        window.history.pushState(null, "", `/?page=blog&slug=${activeArticle.slug}`);
+      }
+    } else {
+      if (slug) {
+        window.history.pushState(null, "", "/blog");
+      }
+    }
+  }, [activeArticle]);
+
+  // Listen to popstate event to synchronize active article on Back/Forward clicks
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handlePopStateStatus = () => {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get("slug");
+      if (slug && posts.length > 0) {
+        const match = posts.find((p) => p.slug === slug);
+        if (match) {
+          setActiveArticle(match);
+          return;
+        }
+      }
+      setActiveArticle(null);
+    };
+    window.addEventListener("popstate", handlePopStateStatus);
+    return () => window.removeEventListener("popstate", handlePopStateStatus);
+  }, [posts]);
 
   // Handle Login submission
   const handleLogin = async (e: React.FormEvent) => {
@@ -2468,7 +2517,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                   <a 
                     href={activeArticle.imageUrl} 
                     target="_blank" 
-                    rel="noopener noreferrer" 
+                    rel="nofollow noopener noreferrer" 
                     className="font-mono text-[9px] uppercase tracking-wider bg-black/65 hover:bg-black/85 backdrop-blur-md text-neutral-200 hover:text-white rounded-lg px-2.5 py-1 border border-white/10 transition-all flex items-center gap-1.5 shrink-0"
                     title={`View or attribute image source on ${getImageSourceText(activeArticle.imageUrl)}`}
                   >
@@ -2539,7 +2588,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                   <div className="flex items-center gap-2">
                     <Share2 size={16} className="text-[#14B8A6]" />
                     <h4 className={`font-bold text-sm tracking-tight ${isDarkMode ? "text-white" : "text-slate-900"}`}>
-                      Share this article
+                      Share
                     </h4>
                   </div>
                   
@@ -2823,7 +2872,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                               <a 
                                 href={post.imageUrl} 
                                 target="_blank" 
-                                rel="noopener noreferrer" 
+                                rel="nofollow noopener noreferrer" 
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent card navigation trigger
                                 }}

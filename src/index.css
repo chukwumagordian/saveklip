@@ -5,6 +5,39 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Sora", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Custom shades for unique layout styling */
+  --color-slate-110: #f8fafc;
+  --color-slate-150: #f1f5f9;
+  --color-slate-180: #e2e8f1;
+  --color-slate-205: #cbd5e1;
+  --color-slate-350: #94a3b8;
+  --color-slate-450: #64748b;
+  --color-slate-455: #475569;
+  --color-slate-505: #334155;
+  --color-slate-550: #475569;
+  --color-slate-555: #334155;
+  --color-slate-705: #1e293b;
+  --color-slate-750: #0f172a;
+  --color-slate-755: #0f172a;
+  --color-slate-801: #090d16;
+  --color-slate-805: #020617;
+  --color-slate-850: #0f172a;
+
+  --color-neutral-450: #a3a3a3;
+  --color-neutral-550: #737373;
+  --color-neutral-755: #262626;
+  --color-neutral-850: #171717;
+
+  --color-purple-450: #a78bfa;
+  --color-purple-550: #8b5cf6;
+  --color-purple-650: #7c3aed;
+  --color-purple-750: #6d28d9;
+  --color-purple-850: #4c1d95;
+
+  --color-red-105: #fef2f2;
+  --color-red-550: #ef4444;
+  --color-red-650: #dc2626;
 }
 
 /* Global Typography Overrides */

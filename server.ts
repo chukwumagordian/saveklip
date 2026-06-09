@@ -1337,10 +1337,11 @@ app.post("/api/extract", async (req, res) => {
 
       console.log(`Firing high-performance concurrent TikTok extraction for: ${cleanedUrl}`);
 
-      // We define concurrent candidate promises and race them using firstSuccessfulPromise
-      const extractionCandidates = [
+      // We define lazy-loaded candidate functions and execute them conditionally
+      // Primary group: We prioritize candidates that return high-definition (HD) 1080p links or maximum quality by default
+      const hdExtractionCandidates = [
         // Candidate A1: TikWM POST (Cleaned URL, HD version)
-        (async () => {
+        async () => {
           console.log("Candidate A1: TikWM POST (Cleaned, HD) started...");
           const res = await fetchWithTimeout("https://www.tikwm.com/api/", {
             method: "POST",
@@ -1349,7 +1350,7 @@ app.post("/api/extract", async (req, res) => {
               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             },
             body: new URLSearchParams({ url: cleanedUrl, hd: "1" }).toString(),
-          }, 8000);
+          }, 5500);
           if (!res.ok) throw new Error("TikWM POST response standard not OK");
           const result = await res.json();
           if (!result || result.code !== 0 || !result.data) {
@@ -1357,10 +1358,141 @@ app.post("/api/extract", async (req, res) => {
           }
           console.log("Candidate A1: TikWM POST Cleaned HD succeeded!");
           return formatTikWmResult(result.data, identifier, creator);
-        })(),
+        },
 
+        // Candidate A3: TikWM POST (Original Input URL, HD version)
+        async () => {
+          console.log("Candidate A3: TikWM POST (Original, HD) started...");
+          const res = await fetchWithTimeout("https://www.tikwm.com/api/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+            body: new URLSearchParams({ url: trimmedUrl, hd: "1" }).toString(),
+          }, 5500);
+          if (!res.ok) throw new Error("TikWM POST Original response standard not OK");
+          const result = await res.json();
+          if (!result || result.code !== 0 || !result.data) {
+            throw new Error(`TikWM POST Original failure code: ${result?.code || "missing code"}`);
+          }
+          console.log("Candidate A3: TikWM POST Original HD succeeded!");
+          return formatTikWmResult(result.data, identifier, creator);
+        },
+
+        // Candidate B1: TikWM GET (with www, Cleaned, HD)
+        async () => {
+          console.log("Candidate B1: TikWM GET WWW (Cleaned) started...");
+          const res = await fetchWithTimeout(`https://www.tikwm.com/api/?url=${encodeURIComponent(cleanedUrl)}&hd=1`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+          }, 5500);
+          if (!res.ok) throw new Error("TikWM GET WWW response standard not OK");
+          const result = await res.json();
+          if (!result || result.code !== 0 || !result.data) {
+            throw new Error(`TikWM GET WWW failure code: ${result?.code || "missing code"}`);
+          }
+          console.log("Candidate B1: TikWM GET WWW succeeded!");
+          return formatTikWmResult(result.data, identifier, creator);
+        },
+
+        // Candidate C1: TikWM GET (without www, Cleaned, HD)
+        async () => {
+          console.log("Candidate C1: TikWM GET No-WWW started...");
+          const res = await fetchWithTimeout(`https://tikwm.com/api/?url=${encodeURIComponent(cleanedUrl)}&hd=1`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+          }, 5500);
+          if (!res.ok) throw new Error("TikWM GET No-WWW response standard not OK");
+          const result = await res.json();
+          if (!result || result.code !== 0 || !result.data) {
+            throw new Error(`TikWM GET No-WWW failure code: ${result?.code || "missing code"}`);
+          }
+          console.log("Candidate C1: TikWM GET No-WWW succeeded!");
+          return formatTikWmResult(result.data, identifier, creator);
+        },
+
+        // Candidate D1: LoveTik POST API (Cleaned)
+        async () => {
+          console.log("Candidate D1: LoveTik extraction started...");
+          const res = await fetchWithTimeout("https://lovetik.com/api/ajax/search", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+            body: new URLSearchParams({ query: cleanedUrl }).toString(),
+          }, 5500);
+          if (!res.ok) throw new Error("LoveTik response standard not OK");
+          const result = await res.json();
+          if (!result || result.status !== "ok" || !Array.isArray(result.links) || result.links.length === 0) {
+            throw new Error("LoveTik returned empty link layout status");
+          }
+          console.log("Candidate D1: LoveTik succeeded!");
+          return formatLoveTikResult(result, identifier, creator);
+        },
+
+        // Candidate D2: LoveTik POST API (Original Input URL)
+        async () => {
+          console.log("Candidate D2: LoveTik (Original) started...");
+          const res = await fetchWithTimeout("https://lovetik.com/api/ajax/search", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+            body: new URLSearchParams({ query: trimmedUrl }).toString(),
+          }, 5500);
+          if (!res.ok) throw new Error("LoveTik Original response standard not OK");
+          const result = await res.json();
+          if (!result || result.status !== "ok" || !Array.isArray(result.links) || result.links.length === 0) {
+            throw new Error("LoveTik Original returned empty link layout status");
+          }
+          console.log("Candidate D2: LoveTik Original succeeded!");
+          return formatLoveTikResult(result, identifier, creator);
+        },
+
+        // Candidate E1: Tiklydown GET API (Cleaned)
+        async () => {
+          console.log("Candidate E1: Tiklydown extraction started...");
+          const res = await fetchWithTimeout(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(cleanedUrl)}`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+          }, 5500);
+          if (!res.ok) throw new Error("Tiklydown response standard not OK");
+          const result = await res.json();
+          if (!result || !result.video) {
+            throw new Error("Tiklydown data does not contain core video payload");
+          }
+          console.log("Candidate E1: Tiklydown succeeded!");
+          return formatTiklydownResult(result, identifier, creator);
+        },
+
+        // Candidate E2: Tiklydown GET API (Original)
+        async () => {
+          console.log("Candidate E2: Tiklydown (Original) started...");
+          const res = await fetchWithTimeout(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(trimmedUrl)}`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+          }, 5500);
+          if (!res.ok) throw new Error("Tiklydown Original response standard not OK");
+          const result = await res.json();
+          if (!result || !result.video) {
+            throw new Error("Tiklydown Original data does not contain core video payload");
+          }
+          console.log("Candidate E2: Tiklydown Original succeeded!");
+          return formatTiklydownResult(result, identifier, creator);
+        }
+      ];
+
+      // Secondary fallback group: Used if HD queries fail, we request standard SD links
+      const fallbackExtractionCandidates = [
         // Candidate A2: TikWM POST (Cleaned URL, SD version fallback)
-        (async () => {
+        async () => {
           console.log("Candidate A2: TikWM POST (Cleaned, SD) started...");
           const res = await fetchWithTimeout("https://www.tikwm.com/api/", {
             method: "POST",
@@ -1377,30 +1509,10 @@ app.post("/api/extract", async (req, res) => {
           }
           console.log("Candidate A2: TikWM POST Cleaned SD succeeded!");
           return formatTikWmResult(result.data, identifier, creator);
-        })(),
-
-        // Candidate A3: TikWM POST (Original Input URL, HD version)
-        (async () => {
-          console.log("Candidate A3: TikWM POST (Original, HD) started...");
-          const res = await fetchWithTimeout("https://www.tikwm.com/api/", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            },
-            body: new URLSearchParams({ url: trimmedUrl, hd: "1" }).toString(),
-          }, 8000);
-          if (!res.ok) throw new Error("TikWM POST Original response standard not OK");
-          const result = await res.json();
-          if (!result || result.code !== 0 || !result.data) {
-            throw new Error(`TikWM POST Original failure code: ${result?.code || "missing code"}`);
-          }
-          console.log("Candidate A3: TikWM POST Original HD succeeded!");
-          return formatTikWmResult(result.data, identifier, creator);
-        })(),
+        },
 
         // Candidate A4: TikWM POST (Original Input URL, SD version)
-        (async () => {
+        async () => {
           console.log("Candidate A4: TikWM POST (Original, SD) started...");
           const res = await fetchWithTimeout("https://www.tikwm.com/api/", {
             method: "POST",
@@ -1417,27 +1529,10 @@ app.post("/api/extract", async (req, res) => {
           }
           console.log("Candidate A4: TikWM POST Original SD succeeded!");
           return formatTikWmResult(result.data, identifier, creator);
-        })(),
-
-        // Candidate B1: TikWM GET (with www, Cleaned, HD)
-        (async () => {
-          console.log("Candidate B1: TikWM GET WWW (Cleaned) started...");
-          const res = await fetchWithTimeout(`https://www.tikwm.com/api/?url=${encodeURIComponent(cleanedUrl)}&hd=1`, {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            },
-          }, 8000);
-          if (!res.ok) throw new Error("TikWM GET WWW response standard not OK");
-          const result = await res.json();
-          if (!result || result.code !== 0 || !result.data) {
-            throw new Error(`TikWM GET WWW failure code: ${result?.code || "missing code"}`);
-          }
-          console.log("Candidate B1: TikWM GET WWW succeeded!");
-          return formatTikWmResult(result.data, identifier, creator);
-        })(),
+        },
 
         // Candidate B2: TikWM GET (with www, Original, SD)
-        (async () => {
+        async () => {
           console.log("Candidate B2: TikWM GET WWW (Original, SD) started...");
           const res = await fetchWithTimeout(`https://www.tikwm.com/api/?url=${encodeURIComponent(trimmedUrl)}`, {
             headers: {
@@ -1451,27 +1546,10 @@ app.post("/api/extract", async (req, res) => {
           }
           console.log("Candidate B2: TikWM GET WWW Original SD succeeded!");
           return formatTikWmResult(result.data, identifier, creator);
-        })(),
-
-        // Candidate C1: TikWM GET (without www, Cleaned, HD)
-        (async () => {
-          console.log("Candidate C1: TikWM GET No-WWW started...");
-          const res = await fetchWithTimeout(`https://tikwm.com/api/?url=${encodeURIComponent(cleanedUrl)}&hd=1`, {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            },
-          }, 8000);
-          if (!res.ok) throw new Error("TikWM GET No-WWW response standard not OK");
-          const result = await res.json();
-          if (!result || result.code !== 0 || !result.data) {
-            throw new Error(`TikWM GET No-WWW failure code: ${result?.code || "missing code"}`);
-          }
-          console.log("Candidate C1: TikWM GET No-WWW succeeded!");
-          return formatTikWmResult(result.data, identifier, creator);
-        })(),
+        },
 
         // Candidate C2: TikWM GET (without www, Original, SD)
-        (async () => {
+        async () => {
           console.log("Candidate C2: TikWM GET No-WWW (Original, SD) started...");
           const res = await fetchWithTimeout(`https://tikwm.com/api/?url=${encodeURIComponent(trimmedUrl)}`, {
             headers: {
@@ -1485,89 +1563,25 @@ app.post("/api/extract", async (req, res) => {
           }
           console.log("Candidate C2: TikWM GET No-WWW Original SD succeeded!");
           return formatTikWmResult(result.data, identifier, creator);
-        })(),
-
-        // Candidate D1: LoveTik POST API (Cleaned)
-        (async () => {
-          console.log("Candidate D1: LoveTik extraction started...");
-          const res = await fetchWithTimeout("https://lovetik.com/api/ajax/search", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            },
-            body: new URLSearchParams({ query: cleanedUrl }).toString(),
-          }, 8000);
-          if (!res.ok) throw new Error("LoveTik response standard not OK");
-          const result = await res.json();
-          if (!result || result.status !== "ok" || !Array.isArray(result.links) || result.links.length === 0) {
-            throw new Error("LoveTik returned empty link layout status");
-          }
-          console.log("Candidate D1: LoveTik succeeded!");
-          return formatLoveTikResult(result, identifier, creator);
-        })(),
-
-        // Candidate D2: LoveTik POST API (Original Input URL)
-        (async () => {
-          console.log("Candidate D2: LoveTik (Original) started...");
-          const res = await fetchWithTimeout("https://lovetik.com/api/ajax/search", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            },
-            body: new URLSearchParams({ query: trimmedUrl }).toString(),
-          }, 8000);
-          if (!res.ok) throw new Error("LoveTik Original response standard not OK");
-          const result = await res.json();
-          if (!result || result.status !== "ok" || !Array.isArray(result.links) || result.links.length === 0) {
-            throw new Error("LoveTik Original returned empty link layout status");
-          }
-          console.log("Candidate D2: LoveTik Original succeeded!");
-          return formatLoveTikResult(result, identifier, creator);
-        })(),
-
-        // Candidate E1: Tiklydown GET API (Cleaned)
-        (async () => {
-          console.log("Candidate E1: Tiklydown extraction started...");
-          const res = await fetchWithTimeout(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(cleanedUrl)}`, {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            },
-          }, 8000);
-          if (!res.ok) throw new Error("Tiklydown response standard not OK");
-          const result = await res.json();
-          if (!result || !result.video) {
-            throw new Error("Tiklydown data does not contain core video payload");
-          }
-          console.log("Candidate E1: Tiklydown succeeded!");
-          return formatTiklydownResult(result, identifier, creator);
-        })(),
-
-        // Candidate E2: Tiklydown GET API (Original)
-        (async () => {
-          console.log("Candidate E2: Tiklydown (Original) started...");
-          const res = await fetchWithTimeout(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(trimmedUrl)}`, {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            },
-          }, 8000);
-          if (!res.ok) throw new Error("Tiklydown Original response standard not OK");
-          const result = await res.json();
-          if (!result || !result.video) {
-            throw new Error("Tiklydown Original data does not contain core video payload");
-          }
-          console.log("Candidate E2: Tiklydown Original succeeded!");
-          return formatTiklydownResult(result, identifier, creator);
-        })()
+        }
       ];
 
       try {
-        tikTokMetadata = await firstSuccessfulPromise(extractionCandidates);
+        console.log("Attempting high-definition (HD / 1080p) TikTok extraction candidates first...");
+        // Execute the function array into actual active promises to start them concurrently
+        tikTokMetadata = await firstSuccessfulPromise(hdExtractionCandidates.map(fn => fn()));
         liveTikTokSuccess = true;
-        console.log(`Concurrent extraction succeeded instantly with metadata platform: ${tikTokMetadata.platform}`);
+        console.log(`Preferred HD extraction succeeded instantly with metadata platform: ${tikTokMetadata.platform}`);
       } catch (err: any) {
-        console.warn("All concurrent real extraction candidates failed. Falling back gracefully to design-simulated stream payload.", err.message);
+        console.warn("Preferred HD candidates failed. Trying standard definition and robust fallbacks...", err.message);
+        try {
+          // Execute the fallback candidate functions only when needed
+          tikTokMetadata = await firstSuccessfulPromise(fallbackExtractionCandidates.map(fn => fn()));
+          liveTikTokSuccess = true;
+          console.log(`Fallback standard extraction succeeded with metadata platform: ${tikTokMetadata.platform}`);
+        } catch (fbErr: any) {
+          console.warn("All concurrent real extraction candidates failed. Falling back gracefully to design-simulated stream payload.", fbErr.message);
+        }
       }
 
       // If we got live metadata from either candidate, return it instantly!

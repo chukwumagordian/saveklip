@@ -2,88 +2,88 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Main Home Page (Universal Video Downloader) -->
   <url>
-    <loc>https://saveklip.com/</loc>
-    <lastmod>2026-06-06</lastmod>
+    <loc>https://www.saveklip.com/</loc>
+    <lastmod>2026-06-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
   <!-- TikTok Downloader Tool Page -->
   <url>
-    <loc>https://saveklip.com/tiktok</loc>
-    <lastmod>2026-06-06</lastmod>
+    <loc>https://www.saveklip.com/tiktok</loc>
+    <lastmod>2026-06-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <!-- Instagram Downloader Tool Page -->
   <url>
-    <loc>https://saveklip.com/instagram</loc>
-    <lastmod>2026-06-06</lastmod>
+    <loc>https://www.saveklip.com/instagram</loc>
+    <lastmod>2026-06-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <!-- Blog & Articles Hub Page -->
   <url>
-    <loc>https://saveklip.com/blog</loc>
-    <lastmod>2026-06-06</lastmod>
+    <loc>https://www.saveklip.com/blog</loc>
+    <lastmod>2026-06-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
 
   <!-- Seeded Blog Article 1 -->
   <url>
-    <loc>https://saveklip.com/blog/repurpose-tiktok-instagram</loc>
-    <lastmod>2026-06-06</lastmod>
+    <loc>https://www.saveklip.com/blog/repurpose-tiktok-instagram</loc>
+    <lastmod>2026-06-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <!-- Seeded Blog Article 2 -->
   <url>
-    <loc>https://saveklip.com/blog/maximize-engagement</loc>
-    <lastmod>2026-06-06</lastmod>
+    <loc>https://www.saveklip.com/blog/maximize-engagement</loc>
+    <lastmod>2026-06-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <!-- About Us Page -->
   <url>
-    <loc>https://saveklip.com/about</loc>
-    <lastmod>2026-06-06</lastmod>
+    <loc>https://www.saveklip.com/about</loc>
+    <lastmod>2026-06-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
 
   <!-- Contact Us Page -->
   <url>
-    <loc>https://saveklip.com/contact</loc>
-    <lastmod>2026-06-06</lastmod>
+    <loc>https://www.saveklip.com/contact</loc>
+    <lastmod>2026-06-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
 
   <!-- Privacy Policy Legal Page -->
   <url>
-    <loc>https://saveklip.com/privacy</loc>
-    <lastmod>2026-06-06</lastmod>
+    <loc>https://www.saveklip.com/privacy</loc>
+    <lastmod>2026-06-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
 
   <!-- Terms of Service Legal Page -->
   <url>
-    <loc>https://saveklip.com/terms</loc>
-    <lastmod>2026-06-06</lastmod>
+    <loc>https://www.saveklip.com/terms</loc>
+    <lastmod>2026-06-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
 
   <!-- DMCA Policy Legal Page -->
   <url>
-    <loc>https://saveklip.com/dmca</loc>
-    <lastmod>2026-06-06</lastmod>
+    <loc>https://www.saveklip.com/dmca</loc>
+    <lastmod>2026-06-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>

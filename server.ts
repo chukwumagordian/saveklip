@@ -888,12 +888,25 @@ app.get("/api/download", async (req, res) => {
       "Accept-Language": "en-US,en;q=0.9",
     };
 
-    if (isTikTokUrl) {
-      headers["Referer"] = "https://www.tiktok.com/";
-    } else if (isInstagramUrl) {
-      headers["Referer"] = "https://www.instagram.com/";
-      headers["Sec-Fetch-Mode"] = "cors";
-      headers["Sec-Fetch-Site"] = "cross-site";
+    try {
+      const hrefRef = new URL(mediaUrl);
+      if (/tiktok\.com|ttwstatic\.com/i.test(hrefRef.hostname)) {
+        headers["Referer"] = "https://www.tiktok.com/";
+      } else if (/tikwm\.com/i.test(hrefRef.hostname)) {
+        headers["Referer"] = "https://www.tikwm.com/";
+      } else if (/lovetik\.com/i.test(hrefRef.hostname)) {
+        headers["Referer"] = "https://lovetik.com/";
+      } else if (isInstagramUrl) {
+        headers["Referer"] = "https://www.instagram.com/";
+        headers["Sec-Fetch-Mode"] = "cors";
+        headers["Sec-Fetch-Site"] = "cross-site";
+      }
+    } catch (urlErr) {
+      if (isTikTokUrl) {
+        headers["Referer"] = "https://www.tiktok.com/";
+      } else if (isInstagramUrl) {
+        headers["Referer"] = "https://www.instagram.com/";
+      }
     }
 
     let response = await fetch(mediaUrl, { headers });
@@ -957,6 +970,275 @@ app.get("/api/download", async (req, res) => {
     }
   }
 });
+
+// --- HIGH PERFORMANCE EXTRACTOR UTILITIES & PATTERNS ---
+const resolveShortUrl = async (url: string, timeoutMs = 4500): Promise<string> => {
+  console.log(`[Redirect Resolution] Investigating short link redirect for: ${url}`);
+  let currentUrl = url;
+  
+  // Follow up to 5 manual redirect hops to prevent full body transfer overhead
+  for (let hop = 0; hop < 5; hop++) {
+    try {
+      const res = await fetchWithTimeout(currentUrl, {
+        method: "HEAD",
+        redirect: "manual",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        },
+      }, timeoutMs);
+      
+      const loc = res.headers.get("location");
+      if (loc) {
+        const expanded = loc.startsWith("http") ? loc : new URL(loc, currentUrl).toString();
+        console.log(`[Redirect Resolution - Hop ${hop}] Redirect HEAD -> location header: ${expanded}`);
+        currentUrl = expanded;
+        continue;
+      }
+    } catch (headErr: any) {
+      console.warn(`[Redirect Resolution - Hop ${hop}] HEAD check failed: ${headErr.message}. Retrying via manual GET...`);
+    }
+
+    try {
+      const res = await fetchWithTimeout(currentUrl, {
+        method: "GET",
+        redirect: "manual",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        },
+      }, timeoutMs);
+      
+      const loc = res.headers.get("location");
+      if (loc) {
+        const expanded = loc.startsWith("http") ? loc : new URL(loc, currentUrl).toString();
+        console.log(`[Redirect Resolution - Hop ${hop}] Redirect GET -> location header: ${expanded}`);
+        currentUrl = expanded;
+        continue;
+      }
+    } catch (getErr: any) {
+      console.warn(`[Redirect Resolution - Hop ${hop}] GET manual redirect check also failed: ${getErr.message}`);
+    }
+
+    // If no redirect exists on this hop, stop recursing
+    break;
+  }
+  
+  console.log(`[Redirect Resolution] Ultimate resolved URL: ${currentUrl}`);
+  return currentUrl;
+};
+
+const fetchWithTimeout = async (url: string, options: any = {}, timeoutMs = 8000) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(id);
+    return response;
+  } catch (err) {
+    clearTimeout(id);
+    throw err;
+  }
+};
+
+function firstSuccessfulPromise<T>(promises: Promise<T>[]): Promise<T> {
+  return new Promise((resolve, reject) => {
+    let rejectedCount = 0;
+    const errors: any[] = [];
+    if (promises.length === 0) {
+      return reject(new Error("No promises provided"));
+    }
+    promises.forEach((p, idx) => {
+      Promise.resolve(p).then(
+        (val) => {
+          resolve(val);
+        },
+        (err) => {
+          rejectedCount++;
+          errors[idx] = err;
+          if (rejectedCount === promises.length) {
+            reject(new Error("All promises failed: " + errors.map(e => e?.message || e).join(", ")));
+          }
+        }
+      );
+    });
+  });
+}
+
+const formatTikWmResult = (tdata: any, identifier: string, creator: string) => {
+  const videoOptions = [];
+  
+  if (tdata.hdplay) {
+    videoOptions.push({
+      resolution: "1080p HD (Watermark-Free)",
+      size: tdata.size ? `${(tdata.size / (1024 * 1024)).toFixed(1)} MB` : "24.8 MB",
+      url: tdata.hdplay.startsWith("http") ? tdata.hdplay : `https://www.tikwm.com${tdata.hdplay}`,
+      fps: 60,
+    });
+  }
+  if (tdata.play) {
+    videoOptions.push({
+      resolution: "720p SD (Watermark-Free)",
+      size: tdata.size ? `${(tdata.size * 0.75 / (1024 * 1024)).toFixed(1)} MB` : "15.2 MB",
+      url: tdata.play.startsWith("http") ? tdata.play : `https://www.tikwm.com${tdata.play}`,
+      fps: 30,
+    });
+  }
+
+  if (videoOptions.length === 0 && tdata.wmplay) {
+    videoOptions.push({
+      resolution: "720p SD (With Watermark)",
+      size: "14.2 MB",
+      url: tdata.wmplay,
+      fps: 30,
+    });
+  }
+
+  if (videoOptions.length === 0) {
+    throw new Error("No video options extracted in TikWM payload");
+  }
+
+  const audioOption = {
+    title: tdata.music_info?.title || tdata.music?.title || "Original Sound - Isolated Track",
+    size: "3.4 MB",
+    duration: tdata.duration ? `${Math.floor(tdata.duration / 60)}:${String(tdata.duration % 60).padStart(2, "0")}` : "1:24",
+    url: tdata.music?.play || tdata.music || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+  };
+
+  return {
+    platform: "tiktok",
+    title: tdata.title || `Viral TikTok Trend Video #${identifier}`,
+    creator: tdata.author?.nickname ? `@${tdata.author.unique_id} (${tdata.author.nickname})` : creator,
+    duration: tdata.duration ? `${Math.floor(tdata.duration / 60)}:${String(tdata.duration % 60).padStart(2, "0")}` : "0:30",
+    id: tdata.id || identifier,
+    views: tdata.play_count ? `${(tdata.play_count / 1000).toFixed(0)}K` : "120K",
+    likes: tdata.digg_count ? `${(tdata.digg_count / 1000).toFixed(0)}K` : "45K",
+    comments: tdata.comment_count ? `${tdata.comment_count}` : "250",
+    shares: tdata.share_count ? `${tdata.share_count}` : "120",
+    thumbnail: tdata.cover || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
+    videoOptions,
+    audioOption,
+  };
+};
+
+const formatLoveTikResult = (loveResult: any, identifier: string, creator: string) => {
+  const videoOptions: any[] = [];
+  let audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+
+  loveResult.links.forEach((link: any, idx: number) => {
+    const isAudioOnly = link.t === "mp3" || link.p === "MP3";
+    if (isAudioOnly) {
+      audioUrl = link.a;
+    } else if (link.a) {
+      videoOptions.push({
+        resolution: idx === 0 ? "1080p HD (Watermark-Free)" : "720p SD (Watermark-Free)",
+        size: idx === 0 ? "21.4 MB" : "14.2 MB",
+        url: link.a,
+        fps: idx === 0 ? 60 : 30,
+      });
+    }
+  });
+
+  if (videoOptions.length === 0 && loveResult.links[0]?.a) {
+    videoOptions.push({
+      resolution: "Watermark-Free Quality",
+      size: "15.0 MB",
+      url: loveResult.links[0].a,
+      fps: 30,
+    });
+  }
+
+  if (videoOptions.length === 0) {
+    throw new Error("No video options extracted in LoveTik payload");
+  }
+
+  const audioOption = {
+    title: loveResult.desc ? `Audio - ${loveResult.desc.slice(0, 30)}` : "Original Sound - Isolated Track",
+    size: "3.2 MB",
+    duration: "0:45",
+    url: audioUrl,
+  };
+
+  return {
+    platform: "tiktok",
+    title: loveResult.desc || `Viral TikTok Trend Video #${identifier}`,
+    creator: loveResult.author ? `@${loveResult.author}` : creator,
+    duration: "0:45",
+    id: loveResult.id || identifier,
+    views: "185K",
+    likes: "24K",
+    comments: "150",
+    shares: "90",
+    thumbnail: loveResult.cover || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
+    videoOptions,
+    audioOption,
+  };
+};
+
+const formatTiklydownResult = (tiklyResult: any, identifier: string, creator: string) => {
+  const videoOptions: any[] = [];
+  
+  if (tiklyResult.video.noWatermark) {
+    videoOptions.push({
+      resolution: "1080p HD (Watermark-Free)",
+      size: "18.5 MB",
+      url: tiklyResult.video.noWatermark,
+      fps: 60,
+    });
+  }
+  if (tiklyResult.video.watermark) {
+    videoOptions.push({
+      resolution: "720p SD (With Watermark)",
+      size: "12.2 MB",
+      url: tiklyResult.video.watermark,
+      fps: 30,
+    });
+  }
+
+  if (videoOptions.length === 0 && tiklyResult.video.noWatermark_hd) {
+    videoOptions.push({
+      resolution: "1080p HD (Watermark-Free)",
+      size: "22.4 MB",
+      url: tiklyResult.video.noWatermark_hd,
+      fps: 60,
+    });
+  }
+
+  if (videoOptions.length === 0) {
+    throw new Error("No video options extracted in Tiklydown payload");
+  }
+
+  const ticketDuration = (dur: any) => {
+    if (!dur) return "0:30";
+    const n = Number(dur);
+    if (isNaN(n)) return "0:30";
+    return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, "0")}`;
+  };
+
+  const audioOption = {
+    title: tiklyResult.music?.title || "Original Sound - Isolated Track",
+    size: "3.4 MB",
+    duration: ticketDuration(tiklyResult.video.duration),
+    url: tiklyResult.music?.playUrl || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+  };
+
+  return {
+    platform: "tiktok",
+    title: tiklyResult.title || `Viral TikTok Trend Video #${identifier}`,
+    creator: tiklyResult.author?.unique_id ? `@${tiklyResult.author.unique_id}` : creator,
+    duration: ticketDuration(tiklyResult.video.duration),
+    id: tiklyResult.id || identifier,
+    views: "210K",
+    likes: "38K",
+    comments: "180",
+    shares: "115",
+    thumbnail: tiklyResult.video.cover || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
+    videoOptions,
+    audioOption,
+  };
+};
 
 // Clean express-rate-limit simulation endpoints
 app.post("/api/extract", async (req, res) => {
@@ -1022,77 +1304,279 @@ app.post("/api/extract", async (req, res) => {
 
     // 1. TikTok Live Real Extraction Pipeline
     if (isTikTok) {
-      try {
-        console.log(`Extracting live TikTok media: ${trimmedUrl}`);
-        const response = await fetch("https://www.tikwm.com/api/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          },
-          body: new URLSearchParams({ url: trimmedUrl, hd: "1" }),
-        });
+      let liveTikTokSuccess = false;
+      let tikTokMetadata: any = null;
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result && result.code === 0 && result.data) {
-            const tdata = result.data;
-            
-            const videoOptions = [];
-            // Push direct HD play url
-            if (tdata.hdplay) {
-              videoOptions.push({
-                resolution: "1080p HD (Watermark-Free)",
-                size: tdata.size ? `${(tdata.size / (1024 * 1024)).toFixed(1)} MB` : "24.8 MB",
-                url: tdata.hdplay.startsWith("http") ? tdata.hdplay : `https://www.tikwm.com${tdata.hdplay}`,
-                fps: 60,
-              });
-            }
-            // Push standard watermark-free play url
-            if (tdata.play) {
-              videoOptions.push({
-                resolution: "720p SD (Watermark-Free)",
-                size: tdata.size ? `${(tdata.size * 0.75 / (1024 * 1024)).toFixed(1)} MB` : "15.2 MB",
-                url: tdata.play.startsWith("http") ? tdata.play : `https://www.tikwm.com${tdata.play}`,
-                fps: 30,
-              });
-            }
+      // Clean the URL by removing analytic / marketing query terms that fail standard bypass APIs
+      let cleanedUrl = trimmedUrl;
 
-            if (videoOptions.length === 0) {
-              throw new Error("No download options returned from source");
-            }
-
-            const audioOption = {
-              title: tdata.music_info?.title || tdata.music?.title || "Original Sound - Isolated Track",
-              size: "3.4 MB",
-              duration: tdata.duration ? `${Math.floor(tdata.duration / 60)}:${String(tdata.duration % 60).padStart(2, "0")}` : "1:24",
-              url: tdata.music?.play || tdata.music || "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-            };
-
-            const metadata = {
-              platform: "tiktok",
-              title: tdata.title || `Viral TikTok Trend Video #${identifier}`,
-              creator: tdata.author?.nickname ? `@${tdata.author.unique_id} (${tdata.author.nickname})` : creator,
-              duration: tdata.duration ? `${Math.floor(tdata.duration / 60)}:${String(tdata.duration % 60).padStart(2, "0")}` : "0:30",
-              id: tdata.id || identifier,
-              views: tdata.play_count ? `${(tdata.play_count / 1000).toFixed(0)}K` : "120K",
-              likes: tdata.digg_count ? `${(tdata.digg_count / 1000).toFixed(0)}K` : "45K",
-              comments: tdata.comment_count ? `${tdata.comment_count}` : "250",
-              shares: tdata.share_count ? `${tdata.share_count}` : "120",
-              thumbnail: tdata.cover || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
-              videoOptions,
-              audioOption,
-            };
-
-            return res.json({
-              success: true,
-              metadata,
-              remaining,
-            });
-          }
+      // Expansive short link redirect resolver to solve canonical path extraction failures
+      if (!trimmedUrl.includes("/video/") && !trimmedUrl.includes("/v/")) {
+        try {
+          cleanedUrl = await resolveShortUrl(trimmedUrl, 4500);
+        } catch (resolveErr) {
+          cleanedUrl = trimmedUrl;
         }
+      }
+
+      try {
+        const urlObj = new URL(cleanedUrl);
+        if (urlObj.hostname.includes("tiktok.com")) {
+          const cleanedParams = new URLSearchParams();
+          urlObj.searchParams.forEach((value, key) => {
+            if (!key.startsWith("utm_") && !["_d", "checksum", "sec_user_id", "share_app_id", "share_link_id", "share_item_id", "social_sharing", "author_id", "_r"].includes(key)) {
+              cleanedParams.append(key, value);
+            }
+          });
+          const searchStr = cleanedParams.toString();
+          cleanedUrl = `${urlObj.origin}${urlObj.pathname}${searchStr ? "?" + searchStr : ""}`;
+        }
+      } catch (urlCleanErr) {
+        cleanedUrl = trimmedUrl;
+      }
+
+      console.log(`Firing high-performance concurrent TikTok extraction for: ${cleanedUrl}`);
+
+      // We define concurrent candidate promises and race them using firstSuccessfulPromise
+      const extractionCandidates = [
+        // Candidate A1: TikWM POST (Cleaned URL, HD version)
+        (async () => {
+          console.log("Candidate A1: TikWM POST (Cleaned, HD) started...");
+          const res = await fetchWithTimeout("https://www.tikwm.com/api/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+            body: new URLSearchParams({ url: cleanedUrl, hd: "1" }).toString(),
+          }, 8000);
+          if (!res.ok) throw new Error("TikWM POST response standard not OK");
+          const result = await res.json();
+          if (!result || result.code !== 0 || !result.data) {
+            throw new Error(`TikWM POST failure code: ${result?.code || "missing code"}`);
+          }
+          console.log("Candidate A1: TikWM POST Cleaned HD succeeded!");
+          return formatTikWmResult(result.data, identifier, creator);
+        })(),
+
+        // Candidate A2: TikWM POST (Cleaned URL, SD version fallback)
+        (async () => {
+          console.log("Candidate A2: TikWM POST (Cleaned, SD) started...");
+          const res = await fetchWithTimeout("https://www.tikwm.com/api/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+            body: new URLSearchParams({ url: cleanedUrl }).toString(),
+          }, 8000);
+          if (!res.ok) throw new Error("TikWM POST SD response standard not OK");
+          const result = await res.json();
+          if (!result || result.code !== 0 || !result.data) {
+            throw new Error(`TikWM POST SD failure code: ${result?.code || "missing code"}`);
+          }
+          console.log("Candidate A2: TikWM POST Cleaned SD succeeded!");
+          return formatTikWmResult(result.data, identifier, creator);
+        })(),
+
+        // Candidate A3: TikWM POST (Original Input URL, HD version)
+        (async () => {
+          console.log("Candidate A3: TikWM POST (Original, HD) started...");
+          const res = await fetchWithTimeout("https://www.tikwm.com/api/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+            body: new URLSearchParams({ url: trimmedUrl, hd: "1" }).toString(),
+          }, 8000);
+          if (!res.ok) throw new Error("TikWM POST Original response standard not OK");
+          const result = await res.json();
+          if (!result || result.code !== 0 || !result.data) {
+            throw new Error(`TikWM POST Original failure code: ${result?.code || "missing code"}`);
+          }
+          console.log("Candidate A3: TikWM POST Original HD succeeded!");
+          return formatTikWmResult(result.data, identifier, creator);
+        })(),
+
+        // Candidate A4: TikWM POST (Original Input URL, SD version)
+        (async () => {
+          console.log("Candidate A4: TikWM POST (Original, SD) started...");
+          const res = await fetchWithTimeout("https://www.tikwm.com/api/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+            body: new URLSearchParams({ url: trimmedUrl }).toString(),
+          }, 8000);
+          if (!res.ok) throw new Error("TikWM POST Original SD response standard not OK");
+          const result = await res.json();
+          if (!result || result.code !== 0 || !result.data) {
+            throw new Error(`TikWM POST Original SD failure code: ${result?.code || "missing code"}`);
+          }
+          console.log("Candidate A4: TikWM POST Original SD succeeded!");
+          return formatTikWmResult(result.data, identifier, creator);
+        })(),
+
+        // Candidate B1: TikWM GET (with www, Cleaned, HD)
+        (async () => {
+          console.log("Candidate B1: TikWM GET WWW (Cleaned) started...");
+          const res = await fetchWithTimeout(`https://www.tikwm.com/api/?url=${encodeURIComponent(cleanedUrl)}&hd=1`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+          }, 8000);
+          if (!res.ok) throw new Error("TikWM GET WWW response standard not OK");
+          const result = await res.json();
+          if (!result || result.code !== 0 || !result.data) {
+            throw new Error(`TikWM GET WWW failure code: ${result?.code || "missing code"}`);
+          }
+          console.log("Candidate B1: TikWM GET WWW succeeded!");
+          return formatTikWmResult(result.data, identifier, creator);
+        })(),
+
+        // Candidate B2: TikWM GET (with www, Original, SD)
+        (async () => {
+          console.log("Candidate B2: TikWM GET WWW (Original, SD) started...");
+          const res = await fetchWithTimeout(`https://www.tikwm.com/api/?url=${encodeURIComponent(trimmedUrl)}`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+          }, 8000);
+          if (!res.ok) throw new Error("TikWM GET WWW Original SD response standard not OK");
+          const result = await res.json();
+          if (!result || result.code !== 0 || !result.data) {
+            throw new Error(`TikWM GET WWW Original SD failure code: ${result?.code || "missing code"}`);
+          }
+          console.log("Candidate B2: TikWM GET WWW Original SD succeeded!");
+          return formatTikWmResult(result.data, identifier, creator);
+        })(),
+
+        // Candidate C1: TikWM GET (without www, Cleaned, HD)
+        (async () => {
+          console.log("Candidate C1: TikWM GET No-WWW started...");
+          const res = await fetchWithTimeout(`https://tikwm.com/api/?url=${encodeURIComponent(cleanedUrl)}&hd=1`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+          }, 8000);
+          if (!res.ok) throw new Error("TikWM GET No-WWW response standard not OK");
+          const result = await res.json();
+          if (!result || result.code !== 0 || !result.data) {
+            throw new Error(`TikWM GET No-WWW failure code: ${result?.code || "missing code"}`);
+          }
+          console.log("Candidate C1: TikWM GET No-WWW succeeded!");
+          return formatTikWmResult(result.data, identifier, creator);
+        })(),
+
+        // Candidate C2: TikWM GET (without www, Original, SD)
+        (async () => {
+          console.log("Candidate C2: TikWM GET No-WWW (Original, SD) started...");
+          const res = await fetchWithTimeout(`https://tikwm.com/api/?url=${encodeURIComponent(trimmedUrl)}`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+          }, 8000);
+          if (!res.ok) throw new Error("TikWM GET No-WWW Original SD response standard not OK");
+          const result = await res.json();
+          if (!result || result.code !== 0 || !result.data) {
+            throw new Error(`TikWM GET No-WWW Original SD failure code: ${result?.code || "missing code"}`);
+          }
+          console.log("Candidate C2: TikWM GET No-WWW Original SD succeeded!");
+          return formatTikWmResult(result.data, identifier, creator);
+        })(),
+
+        // Candidate D1: LoveTik POST API (Cleaned)
+        (async () => {
+          console.log("Candidate D1: LoveTik extraction started...");
+          const res = await fetchWithTimeout("https://lovetik.com/api/ajax/search", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+            body: new URLSearchParams({ query: cleanedUrl }).toString(),
+          }, 8000);
+          if (!res.ok) throw new Error("LoveTik response standard not OK");
+          const result = await res.json();
+          if (!result || result.status !== "ok" || !Array.isArray(result.links) || result.links.length === 0) {
+            throw new Error("LoveTik returned empty link layout status");
+          }
+          console.log("Candidate D1: LoveTik succeeded!");
+          return formatLoveTikResult(result, identifier, creator);
+        })(),
+
+        // Candidate D2: LoveTik POST API (Original Input URL)
+        (async () => {
+          console.log("Candidate D2: LoveTik (Original) started...");
+          const res = await fetchWithTimeout("https://lovetik.com/api/ajax/search", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+            body: new URLSearchParams({ query: trimmedUrl }).toString(),
+          }, 8000);
+          if (!res.ok) throw new Error("LoveTik Original response standard not OK");
+          const result = await res.json();
+          if (!result || result.status !== "ok" || !Array.isArray(result.links) || result.links.length === 0) {
+            throw new Error("LoveTik Original returned empty link layout status");
+          }
+          console.log("Candidate D2: LoveTik Original succeeded!");
+          return formatLoveTikResult(result, identifier, creator);
+        })(),
+
+        // Candidate E1: Tiklydown GET API (Cleaned)
+        (async () => {
+          console.log("Candidate E1: Tiklydown extraction started...");
+          const res = await fetchWithTimeout(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(cleanedUrl)}`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+          }, 8000);
+          if (!res.ok) throw new Error("Tiklydown response standard not OK");
+          const result = await res.json();
+          if (!result || !result.video) {
+            throw new Error("Tiklydown data does not contain core video payload");
+          }
+          console.log("Candidate E1: Tiklydown succeeded!");
+          return formatTiklydownResult(result, identifier, creator);
+        })(),
+
+        // Candidate E2: Tiklydown GET API (Original)
+        (async () => {
+          console.log("Candidate E2: Tiklydown (Original) started...");
+          const res = await fetchWithTimeout(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(trimmedUrl)}`, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+          }, 8000);
+          if (!res.ok) throw new Error("Tiklydown Original response standard not OK");
+          const result = await res.json();
+          if (!result || !result.video) {
+            throw new Error("Tiklydown Original data does not contain core video payload");
+          }
+          console.log("Candidate E2: Tiklydown Original succeeded!");
+          return formatTiklydownResult(result, identifier, creator);
+        })()
+      ];
+
+      try {
+        tikTokMetadata = await firstSuccessfulPromise(extractionCandidates);
+        liveTikTokSuccess = true;
+        console.log(`Concurrent extraction succeeded instantly with metadata platform: ${tikTokMetadata.platform}`);
       } catch (err: any) {
-        console.log("[TikTok] Standard simulated fallback streaming active.");
+        console.warn("All concurrent real extraction candidates failed. Falling back gracefully to design-simulated stream payload.", err.message);
+      }
+
+      // If we got live metadata from either candidate, return it instantly!
+      if (liveTikTokSuccess && tikTokMetadata) {
+        return res.json({
+          success: true,
+          metadata: tikTokMetadata,
+          remaining,
+        });
       }
     }
 
@@ -1344,119 +1828,121 @@ app.post("/api/extract", async (req, res) => {
 
       // Match A2: Fallback to HTML scraping
       if (!liveInstagramSuccess) {
-        for (const domain of proxyDomains) {
-          if (liveInstagramSuccess) break;
+        console.log("Instagram: Firing concurrent proxy HTML scrapers...");
+        const instagramScrapePromises = proxyDomains.map(async (domain) => {
+          let targetUrl = trimmedUrl;
+          targetUrl = targetUrl.replace(/(www\.)?instagram\.com/i, domain);
+          targetUrl = targetUrl.replace(/(www\.)?instagr\.am/i, domain);
 
+          let cleanedTargetUrl = targetUrl;
           try {
-            console.log(`Extracting live Instagram media from html proxy ${domain}: ${trimmedUrl}`);
-            let targetUrl = trimmedUrl;
-            targetUrl = targetUrl.replace(/(www\.)?instagram\.com/i, domain);
-            targetUrl = targetUrl.replace(/(www\.)?instagr\.am/i, domain);
-
-            let cleanedTargetUrl = targetUrl;
-            try {
-              const parsedTargetUrl = new URL(targetUrl);
-              cleanedTargetUrl = `https://${domain}${parsedTargetUrl.pathname}`;
-            } catch (e) {
-              cleanedTargetUrl = targetUrl.split("?")[0];
-            }
-
-            console.log(`Fetching crawling target node: ${cleanedTargetUrl}`);
-            const response = await fetch(cleanedTargetUrl, {
-              headers: {
-                "User-Agent": "Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.5",
-              },
-            });
-
-            if (response.ok) {
-              const html = await response.text();
-
-              const videoUrl = extractMetaTag(html, "og:video") || 
-                               extractMetaTag(html, "og:video:secure_url") || 
-                               extractMetaTag(html, "og:video:url") || 
-                               extractMetaTag(html, "twitter:player:stream") || 
-                               extractMetaTag(html, "twitter:player");
-
-              const imageUrl = extractMetaTag(html, "og:image") || 
-                               extractMetaTag(html, "og:image:secure_url") || 
-                               extractMetaTag(html, "twitter:image") ||
-                               "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&auto=format&fit=crop&q=80";
-
-              const title = extractMetaTag(html, "og:title") || 
-                            extractMetaTag(html, "twitter:title") || 
-                            extractMetaTag(html, "og:description") || 
-                            extractMetaTag(html, "twitter:description") || 
-                            `Premium Creative Reel video #${identifier}`;
-
-              const description = extractMetaTag(html, "og:description") || 
-                                  extractMetaTag(html, "twitter:description") || "";
-
-              if (videoUrl) {
-                console.log(`Successfully extracted live Instagram video URL from metadata ${domain}: ${videoUrl}`);
-
-                const videoOptions = [
-                  {
-                    resolution: "1080p HD (Watermark-Free)",
-                    size: "18.5 MB",
-                    url: videoUrl,
-                    fps: 60,
-                  },
-                  {
-                    resolution: "720p HD",
-                    size: "11.1 MB",
-                    url: videoUrl,
-                    fps: 30,
-                  }
-                ];
-
-                const audioOption = {
-                  title: "Audio Track - Isolated Reel Sound",
-                  size: "2.8 MB",
-                  duration: "0:58",
-                  url: `/api/download?url=${encodeURIComponent(videoUrl)}&extractAudio=true&filename=${encodeURIComponent(identifier)}_audio.mp3`,
-                };
-
-                // Leverage our Social Stats Parsing and Synthesis Engine
-                const { views, likes, comments, shares } = parseInstagramStats(html, null, identifier, title, description);
-
-                // Dynamic duration based on identifier
-                let durationHash = 0;
-                for (let idx = 0; idx < identifier.length; idx++) {
-                  durationHash = (durationHash << 5) - durationHash + identifier.charCodeAt(idx);
-                  durationHash |= 0;
-                }
-                const durationSec = 15 + (Math.abs(durationHash) % 46); // 15 to 60 seconds
-                const dynamicDuration = `0:${String(durationSec).padStart(2, "0")}`;
-
-                instagramMetadata = {
-                  platform: "instagram",
-                  title: title || description || `Premium Creative Reel video #${identifier}`,
-                  creator: creator,
-                  duration: dynamicDuration,
-                  id: identifier,
-                  views,
-                  likes,
-                  comments,
-                  shares,
-                  thumbnail: imageUrl,
-                  videoOptions,
-                  audioOption,
-                };
-
-                liveInstagramSuccess = true;
-                break;
-              }
-            }
-          } catch (domainErr: any) {
-            // Gracefully retry with another proxy domain
+            const parsedTargetUrl = new URL(targetUrl);
+            cleanedTargetUrl = `https://${domain}${parsedTargetUrl.pathname}`;
+          } catch (e) {
+            cleanedTargetUrl = targetUrl.split("?")[0];
           }
+
+          console.log(`Instagram concurrent crawl checking: ${cleanedTargetUrl}`);
+          const response = await fetchWithTimeout(cleanedTargetUrl, {
+            headers: {
+              "User-Agent": "Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)",
+              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+              "Accept-Language": "en-US,en;q=0.5",
+            },
+          }, 8500);
+
+          if (!response.ok) {
+            throw new Error(`Scraper failed for domain ${domain} with status ${response.status}`);
+          }
+
+          const html = await response.text();
+
+          const videoUrl = extractMetaTag(html, "og:video") || 
+                           extractMetaTag(html, "og:video:secure_url") || 
+                           extractMetaTag(html, "og:video:url") || 
+                           extractMetaTag(html, "twitter:player:stream") || 
+                           extractMetaTag(html, "twitter:player");
+
+          if (!videoUrl) {
+            throw new Error(`No video URL extracted for domain ${domain}`);
+          }
+
+          const imageUrl = extractMetaTag(html, "og:image") || 
+                           extractMetaTag(html, "og:image:secure_url") || 
+                           extractMetaTag(html, "twitter:image") ||
+                           "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&auto=format&fit=crop&q=80";
+
+          const title = extractMetaTag(html, "og:title") || 
+                        extractMetaTag(html, "twitter:title") || 
+                        extractMetaTag(html, "og:description") || 
+                        extractMetaTag(html, "twitter:description") || 
+                        `Premium Creative Reel video #${identifier}`;
+
+          const description = extractMetaTag(html, "og:description") || 
+                              extractMetaTag(html, "twitter:description") || "";
+
+          console.log(`Successfully extracted live Instagram video URL from metadata ${domain}: ${videoUrl}`);
+
+          const videoOptions = [
+            {
+              resolution: "1080p HD (Watermark-Free)",
+              size: "18.5 MB",
+              url: videoUrl,
+              fps: 60,
+            },
+            {
+              resolution: "720p HD",
+              size: "11.1 MB",
+              url: videoUrl,
+              fps: 30,
+            }
+          ];
+
+          const audioOption = {
+            title: "Audio Track - Isolated Reel Sound",
+            size: "2.8 MB",
+            duration: "0:58",
+            url: `/api/download?url=${encodeURIComponent(videoUrl)}&extractAudio=true&filename=${encodeURIComponent(identifier)}_audio.mp3`,
+          };
+
+          const { views, likes, comments, shares } = parseInstagramStats(html, null, identifier, title, description);
+
+          let durationHash = 0;
+          for (let idx = 0; idx < identifier.length; idx++) {
+            durationHash = (durationHash << 5) - durationHash + identifier.charCodeAt(idx);
+            durationHash |= 0;
+          }
+          const durationSec = 15 + (Math.abs(durationHash) % 46); // 15 to 60 seconds
+          const dynamicDuration = `0:${String(durationSec).padStart(2, "0")}`;
+
+          return {
+            platform: "instagram",
+            title: title || description || `Premium Creative Reel video #${identifier}`,
+            creator: creator,
+            duration: dynamicDuration,
+            id: identifier,
+            views,
+            likes,
+            comments,
+            shares,
+            thumbnail: imageUrl,
+            videoOptions,
+            audioOption,
+          };
+        });
+
+        try {
+          instagramMetadata = await firstSuccessfulPromise(instagramScrapePromises);
+          liveInstagramSuccess = true;
+          console.log("Instagram: Concurrent scraping succeeded!");
+        } catch (err: any) {
+          console.warn("Instagram: All concurrent scraping options failed:", err.message);
         }
       }
 
       // Method B: AJAX extraction endpoints backup
       if (!liveInstagramSuccess) {
+        console.log("Instagram: Firing concurrent AJAX endpoint extraction...");
         const endpoints = [
           "https://saveig.app/api/ajaxSearch",
           "https://v3.saveig.app/api/ajaxSearch",
@@ -1464,103 +1950,103 @@ app.post("/api/extract", async (req, res) => {
           "https://savevideofb.com/api/ajaxSearch"
         ];
 
-        for (const endpoint of endpoints) {
-          try {
-            console.log(`Extracting live Instagram media from failover AJAX ${endpoint}: ${trimmedUrl}`);
-            const response = await fetch(endpoint, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Origin": endpoint.split("/api")[0],
-                "Referer": endpoint.split("/api")[0] + "/",
-              },
-              body: new URLSearchParams({
-                q: trimmedUrl,
-                t: "media",
-                lang: "en",
-              }),
-            });
+        const ajaxPromises = endpoints.map(async (endpoint) => {
+          console.log(`Instagram concurrent AJAX check: ${endpoint}`);
+          const response = await fetchWithTimeout(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+              "Origin": endpoint.split("/api")[0],
+              "Referer": endpoint.split("/api")[0] + "/",
+            },
+            body: new URLSearchParams({
+              q: trimmedUrl,
+              t: "media",
+              lang: "en",
+            }),
+          }, 8500);
 
-            if (response.ok) {
-              const result = await response.json();
-              if (result && result.status === "ok" && result.data) {
-                const html = result.data;
+          if (!response.ok) {
+            throw new Error(`AJAX endpoint ${endpoint} status not OK`);
+          }
 
-                // Extract links from HTML
-                const links: string[] = [];
-                const hregex = /href="([^"]+)"/g;
-                let hmatch;
-                while ((hmatch = hregex.exec(html)) !== null) {
-                  const potentialUrl = hmatch[1].replace(/&amp;/g, "&");
-                  // Keep proxy links from Snapinsta/Saveig as failover
-                  if (potentialUrl.startsWith("http")) {
-                    if (!links.includes(potentialUrl)) {
-                      links.push(potentialUrl);
-                    }
-                  }
-                }
+          const result = await response.json();
+          if (!result || result.status !== "ok" || !result.data) {
+            throw new Error(`AJAX endpoint ${endpoint} failed or returned bad data`);
+          }
 
-                // Extract thumbnail
-                let thumb = "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&auto=format&fit=crop&q=80";
-                const sregex = /src="([^"]+)"/g;
-                let smatch = sregex.exec(html);
-                if (smatch) {
-                  thumb = smatch[1].replace(/&amp;/g, "&");
-                }
-
-                if (links.length > 0) {
-                  const videoOptions = links.map((link, idx) => ({
-                    resolution: idx === 0 ? "1080p HD (Watermark-Free)" : "720p HD",
-                    size: idx === 0 ? "18.5 MB" : "11.1 MB",
-                    url: link,
-                    fps: idx === 0 ? 60 : 30,
-                  }));
-
-                  // First video option url for audio extract
-                  const firstLink = links[0];
-                  const audioOption = {
-                    title: "Audio Track - Isolated Reel Sound",
-                    size: "2.8 MB",
-                    duration: "0:58",
-                    url: `/api/download?url=${encodeURIComponent(firstLink)}&extractAudio=true&filename=${encodeURIComponent(identifier)}_audio.mp3`,
-                  };
-
-                  // Leverage our Social Stats Parsing and Synthesis Engine
-                  const { views, likes, comments, shares } = parseInstagramStats(html, null, identifier, `Premium Creative Reel video #${identifier}`, "");
-
-                  // Dynamic duration based on identifier
-                  let durationHash = 0;
-                  for (let idx = 0; idx < identifier.length; idx++) {
-                    durationHash = (durationHash << 5) - durationHash + identifier.charCodeAt(idx);
-                    durationHash |= 0;
-                  }
-                  const durationSec = 15 + (Math.abs(durationHash) % 46); // 15 to 60 seconds
-                  const dynamicDuration = `0:${String(durationSec).padStart(2, "0")}`;
-
-                  instagramMetadata = {
-                    platform: "instagram",
-                    title: `Premium Creative Reel video #${identifier}`,
-                    creator: creator,
-                    duration: dynamicDuration,
-                    id: identifier,
-                    views,
-                    likes,
-                    comments,
-                    shares,
-                    thumbnail: thumb,
-                    videoOptions,
-                    audioOption,
-                  };
-
-                  liveInstagramSuccess = true;
-                  break;
-                }
+          const html = result.data;
+          const links: string[] = [];
+          const hregex = /href="([^"]+)"/g;
+          let hmatch;
+          while ((hmatch = hregex.exec(html)) !== null) {
+            const potentialUrl = hmatch[1].replace(/&amp;/g, "&");
+            if (potentialUrl.startsWith("http")) {
+              if (!links.includes(potentialUrl)) {
+                links.push(potentialUrl);
               }
             }
-          } catch (err: any) {
-            // Gracefully proceed with remaining options
           }
+
+          let thumb = "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&auto=format&fit=crop&q=80";
+          const sregex = /src="([^"]+)"/g;
+          let smatch = sregex.exec(html);
+          if (smatch) {
+            thumb = smatch[1].replace(/&amp;/g, "&");
+          }
+
+          if (links.length === 0) {
+            throw new Error(`AJAX endpoint ${endpoint} extracted zero download links`);
+          }
+
+          const videoOptions = links.map((link, idx) => ({
+            resolution: idx === 0 ? "1080p HD (Watermark-Free)" : "720p HD",
+            size: idx === 0 ? "18.5 MB" : "11.1 MB",
+            url: link,
+            fps: idx === 0 ? 60 : 30,
+          }));
+
+          const firstLink = links[0];
+          const audioOption = {
+            title: "Audio Track - Isolated Reel Sound",
+            size: "2.8 MB",
+            duration: "0:58",
+            url: `/api/download?url=${encodeURIComponent(firstLink)}&extractAudio=true&filename=${encodeURIComponent(identifier)}_audio.mp3`,
+          };
+
+          const { views, likes, comments, shares } = parseInstagramStats(html, null, identifier, `Premium Creative Reel video #${identifier}`, "");
+
+          let durationHash = 0;
+          for (let idx = 0; idx < identifier.length; idx++) {
+            durationHash = (durationHash << 5) - durationHash + identifier.charCodeAt(idx);
+            durationHash |= 0;
+          }
+          const durationSec = 15 + (Math.abs(durationHash) % 46);
+          const dynamicDuration = `0:${String(durationSec).padStart(2, "0")}`;
+
+          return {
+            platform: "instagram",
+            title: `Premium Creative Reel video #${identifier}`,
+            creator: creator,
+            duration: dynamicDuration,
+            id: identifier,
+            views,
+            likes,
+            comments,
+            shares,
+            thumbnail: thumb,
+            videoOptions,
+            audioOption,
+          };
+        });
+
+        try {
+          instagramMetadata = await firstSuccessfulPromise(ajaxPromises);
+          liveInstagramSuccess = true;
+          console.log("Instagram: Concurrent AJAX extraction succeeded!");
+        } catch (err: any) {
+          console.warn("Instagram: All concurrent AJAX extraction options failed:", err.message);
         }
       }
 
@@ -1792,6 +2278,125 @@ Please outline:
       details: error.message,
     });
   }
+});
+
+// Dynamic Sitemap XML Endpoint
+app.get("/sitemap.xml", async (req, res) => {
+  let posts: any[] = [];
+  const db = getFirestoreDb();
+  if (db) {
+    try {
+      const colRef = collection(db, "blog_posts");
+      const q = query(colRef, orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
+      snapshot.forEach((docRef) => {
+        posts.push({ id: docRef.id, ...docRef.data() });
+      });
+    } catch (dbErr) {
+      console.error("Firestore fetch for dynamic sitemap failed:", dbErr);
+    }
+  }
+
+  // Fallback to local posts JSON
+  if (posts.length === 0) {
+    posts = getBlogPosts();
+  }
+
+  const helperFormatDate = (dateStr?: string) => {
+    if (!dateStr) return "2026-06-08";
+    try {
+      return dateStr.split("T")[0] || "2026-06-08";
+    } catch (e) {
+      return "2026-06-08";
+    }
+  };
+
+  const domain = "https://www.saveklip.com";
+  
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Main Home Page -->
+  <url>
+    <loc>${domain}/</loc>
+    <lastmod>2026-06-08</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <!-- TikTok Downloader Tool -->
+  <url>
+    <loc>${domain}/tiktok</loc>
+    <lastmod>2026-06-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Instagram Downloader Tool -->
+  <url>
+    <loc>${domain}/instagram</loc>
+    <lastmod>2026-06-08</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- Blog Hub Page -->
+  <url>
+    <loc>${domain}/blog</loc>
+    <lastmod>2026-06-08</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>\n`;
+
+  // Dynamically include active, published blog posts
+  posts.forEach((post) => {
+    if (post.slug && post.status !== "draft") {
+      const pDate = helperFormatDate(post.createdAt || post.updatedAt);
+      xml += `  <url>
+    <loc>${domain}/blog/${post.slug}</loc>
+    <lastmod>${pDate}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>\n`;
+    }
+  });
+
+  // Main Static Pages
+  xml += `  <!-- About Us -->
+  <url>
+    <loc>${domain}/about</loc>
+    <lastmod>2026-06-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <!-- Contact Us -->
+  <url>
+    <loc>${domain}/contact</loc>
+    <lastmod>2026-06-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <!-- Privacy Policy -->
+  <url>
+    <loc>${domain}/privacy</loc>
+    <lastmod>2026-06-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <!-- Terms of Service -->
+  <url>
+    <loc>${domain}/terms</loc>
+    <lastmod>2026-06-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <!-- DMCA Policy -->
+  <url>
+    <loc>${domain}/dmca</loc>
+    <lastmod>2026-06-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+</urlset>`;
+
+  res.header("Content-Type", "application/xml");
+  res.send(xml);
 });
 
 // Integration with Vite dev / production router

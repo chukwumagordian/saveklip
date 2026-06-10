@@ -363,6 +363,16 @@ export default function App() {
         throw new Error(data.error || "Failed to extract media information");
       }
 
+      if (data.metadata && Array.isArray(data.metadata.videoOptions)) {
+        const seen = new Set();
+        data.metadata.videoOptions = data.metadata.videoOptions.filter((opt: any) => {
+          if (!opt || !opt.resolution) return false;
+          if (seen.has(opt.resolution)) return false;
+          seen.add(opt.resolution);
+          return true;
+        });
+      }
+
       setResult(data.metadata);
     } catch (err: any) {
       setValidationError(err.message || "Something went wrong. Please check your link or try again.");

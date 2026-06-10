@@ -1067,6 +1067,18 @@ function firstSuccessfulPromise<T>(promises: Promise<T>[]): Promise<T> {
   });
 }
 
+const deduplicateOptions = (options: any[]) => {
+  const seen = new Set<string>();
+  return options.filter(opt => {
+    if (!opt || !opt.resolution) return false;
+    if (seen.has(opt.resolution)) {
+      return false;
+    }
+    seen.add(opt.resolution);
+    return true;
+  });
+};
+
 const formatTikWmResult = (tdata: any, identifier: string, creator: string) => {
   const videoOptions = [];
   
@@ -1118,7 +1130,7 @@ const formatTikWmResult = (tdata: any, identifier: string, creator: string) => {
     comments: tdata.comment_count ? `${tdata.comment_count}` : "250",
     shares: tdata.share_count ? `${tdata.share_count}` : "120",
     thumbnail: tdata.cover || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
-    videoOptions,
+    videoOptions: deduplicateOptions(videoOptions),
     audioOption,
   };
 };
@@ -1172,7 +1184,7 @@ const formatLoveTikResult = (loveResult: any, identifier: string, creator: strin
     comments: "150",
     shares: "90",
     thumbnail: loveResult.cover || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
-    videoOptions,
+    videoOptions: deduplicateOptions(videoOptions),
     audioOption,
   };
 };
@@ -1235,7 +1247,7 @@ const formatTiklydownResult = (tiklyResult: any, identifier: string, creator: st
     comments: "180",
     shares: "115",
     thumbnail: tiklyResult.video.cover || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80",
-    videoOptions,
+    videoOptions: deduplicateOptions(videoOptions),
     audioOption,
   };
 };

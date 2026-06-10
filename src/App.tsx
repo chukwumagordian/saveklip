@@ -1409,9 +1409,11 @@ export default function App() {
             </div>
           </div>
 
-          <p className="max-w-3xl mx-auto text-[11px] opacity-85 leading-relaxed">
-            <strong>{t.disclaimerHeader || "Disclaimer"}:</strong> {t.disclaimerText || "This application is a tool for personal backup archiving and media exploration. We are not allied or officially affiliated with TikTok, ByteDance, Instagram, Meta, or any related social media networks. Brand copyrights belong entirely to their respective media owners."}
-          </p>
+          {currentPage !== "blog" && (
+            <p className="max-w-3xl mx-auto text-[11px] opacity-85 leading-relaxed">
+              <strong>{t.disclaimerHeader || "Disclaimer"}:</strong> {t.disclaimerText || "This application is a tool for personal backup archiving and media exploration. We are not allied or officially affiliated with TikTok, ByteDance, Instagram, Meta, or any related social media networks. Brand copyrights belong entirely to their respective media owners."}
+            </p>
+          )}
 
           <div className={`text-[10px] ${isDarkMode ? "text-slate-600" : "text-slate-400"}`}>
             {t.copyrightText || "© 2026 Gordian. Realized in compliance with high performance web protocols."}

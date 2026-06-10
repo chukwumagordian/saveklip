@@ -2329,11 +2329,11 @@ app.get("/sitemap.xml", async (req, res) => {
   }
 
   const helperFormatDate = (dateStr?: string) => {
-    if (!dateStr) return "2026-06-08";
+    if (!dateStr) return "2026-06-10";
     try {
-      return dateStr.split("T")[0] || "2026-06-08";
+      return dateStr.split("T")[0] || "2026-06-10";
     } catch (e) {
-      return "2026-06-08";
+      return "2026-06-10";
     }
   };
 
@@ -2344,28 +2344,28 @@ app.get("/sitemap.xml", async (req, res) => {
   <!-- Main Home Page -->
   <url>
     <loc>${domain}/</loc>
-    <lastmod>2026-06-08</lastmod>
+    <lastmod>2026-06-10</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <!-- TikTok Downloader Tool -->
   <url>
     <loc>${domain}/tiktok</loc>
-    <lastmod>2026-06-08</lastmod>
+    <lastmod>2026-06-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <!-- Instagram Downloader Tool -->
   <url>
     <loc>${domain}/instagram</loc>
-    <lastmod>2026-06-08</lastmod>
+    <lastmod>2026-06-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <!-- Blog Hub Page -->
   <url>
     <loc>${domain}/blog</loc>
-    <lastmod>2026-06-08</lastmod>
+    <lastmod>2026-06-10</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>\n`;
@@ -2387,35 +2387,35 @@ app.get("/sitemap.xml", async (req, res) => {
   xml += `  <!-- About Us -->
   <url>
     <loc>${domain}/about</loc>
-    <lastmod>2026-06-08</lastmod>
+    <lastmod>2026-06-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <!-- Contact Us -->
   <url>
     <loc>${domain}/contact</loc>
-    <lastmod>2026-06-08</lastmod>
+    <lastmod>2026-06-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <!-- Privacy Policy -->
   <url>
     <loc>${domain}/privacy</loc>
-    <lastmod>2026-06-08</lastmod>
+    <lastmod>2026-06-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <!-- Terms of Service -->
   <url>
     <loc>${domain}/terms</loc>
-    <lastmod>2026-06-08</lastmod>
+    <lastmod>2026-06-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <!-- DMCA Policy -->
   <url>
     <loc>${domain}/dmca</loc>
-    <lastmod>2026-06-08</lastmod>
+    <lastmod>2026-06-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>

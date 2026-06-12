@@ -2437,8 +2437,88 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+    app.get("*", async (req, res) => {
+      try {
+        const filePath = path.join(distPath, "index.html");
+        if (!fs.existsSync(filePath)) {
+          return res.sendFile(filePath);
+        }
+        let html = fs.readFileSync(filePath, "utf-8");
+
+        // Determine request path and metadata
+        const urlPath = req.path.replace(/^\//, "").split("/");
+        const segment = urlPath[0]?.toLowerCase() || "home";
+
+        let title = "Download High Quality TikTok and Instagram Videos With No Watermark - SaveKlip";
+        let description = "SaveKlip is a fast, safe, and free online tool to download high-quality videos from TikTok and Instagram in 1080p HD with no watermark instantly.";
+        let canonicalUrl = "https://www.saveklip.com" + (req.path === "/" ? "" : req.path);
+
+        if (segment === "tiktok") {
+          title = "Free TikTok Video Downloader Without Watermark HD - SaveKlip";
+          description = "Download TikTok videos without watermark in high quality 1080p. Easily save MP4 videos and extract MP3 music with our secure, fast downloader online.";
+        } else if (segment === "instagram") {
+          title = "Instagram Downloader: Download Reels, Videos & Stories - SaveKlip";
+          description = "Download Instagram reels, videos, stories, and photos in high quality. Quick, safe and completely free to save IG media online.";
+        } else if (segment === "blog") {
+          const postSlug = urlPath[1];
+          if (postSlug) {
+            // Fetch direct post from database or fallback local store
+            const allPosts = getBlogPosts();
+            const post = allPosts.find((p) => p.slug === postSlug && p.status !== "draft");
+            if (post) {
+              title = `${post.title} - SaveKlip Blog`;
+              description = post.excerpt || `${post.title}. Read the full article on the SaveKlip official blog.`;
+            } else {
+              title = "SaveKlip Blog - Social Media Resources";
+              description = "Read our latest tips, insights, and tutorials about downloading videos, creating content, and maximizing engagement on TikTok and Instagram.";
+            }
+          } else {
+            title = "SaveKlip Blog: Tips, Tools & Tutorials for Video Creators";
+            description = "Explore the SaveKlip blog for up-to-date tutorials, creative strategies, and advice regarding TikTok, Instagram, content creation, and media downloads.";
+          }
+        } else if (segment === "about") {
+          title = "About Us - SaveKlip HD Downloader";
+          description = "Learn more about SaveKlip, our missions, platform values, and how we provide a super fast, simple, and high-quality utility for video archiving.";
+        } else if (segment === "contact") {
+          title = "Contact Us - Support & Feedback - SaveKlip";
+          description = "Have questions or need assistance? Reach out to the SaveKlip support team. We're here to help you get the most out of our video downloading capabilities.";
+        } else if (segment === "privacy") {
+          title = "Privacy Policy - User Information Safety - SaveKlip";
+          description = "Read our privacy guidelines to understand how we secure your data, respects user privacy boundaries, and handles service logs securely.";
+        } else if (segment === "terms") {
+          title = "Terms of Service - Agreement Regulations - SaveKlip";
+          description = "Understand our user compliance protocols, acceptable usage guidelines, intellectual property limitations, and legal terms of service.";
+        } else if (segment === "dmca") {
+          title = "DMCA Copyright Compliance Policy - SaveKlip";
+          description = "Our compliance mechanism with DMCA guidelines. Read how copyright owners can file a notice of intellectual property violations.";
+        }
+
+        // Dynamically inject custom metadata elements into HTML payload
+        if (html.includes("<title>")) {
+          html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
+        } else {
+          html = html.replace("</head>", `  <title>${title}</title>\n  </head>`);
+        }
+
+        if (html.includes('meta name="description"')) {
+          html = html.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${description}" />`);
+        } else {
+          html = html.replace("</head>", `  <meta name="description" content="${description}" />\n  </head>`);
+        }
+
+        const canonicalTag = `<link rel="canonical" href="${canonicalUrl}" />`;
+        if (html.includes('rel="canonical"')) {
+          html = html.replace(/<link rel="canonical" href=".*?" \/>/, canonicalTag);
+        } else {
+          html = html.replace("</head>", `  ${canonicalTag}\n  </head>`);
+        }
+
+        res.set("Content-Type", "text/html");
+        res.send(html);
+      } catch (err) {
+        console.error("Error generating dynamic SEO meta shell:", err);
+        res.sendFile(path.join(distPath, "index.html"));
+      }
     });
   }
 

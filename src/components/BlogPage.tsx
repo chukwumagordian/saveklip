@@ -615,10 +615,38 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
       if (currentSlug !== activeArticle.slug) {
         window.history.pushState(null, "", `/blog/${activeArticle.slug}`);
       }
+      
+      // Dynamic SEO tag injection for dynamic single post view
+      document.title = `${activeArticle.title} - SaveKlip Blog`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute("content", activeArticle.excerpt || `${activeArticle.title}. Read the full article on SaveKlip Blog.`);
+      }
+      let canonical = document.querySelector("link[rel='canonical']");
+      if (!canonical) {
+        canonical = document.createElement("link");
+        canonical.setAttribute("rel", "canonical");
+        document.head.appendChild(canonical);
+      }
+      canonical.setAttribute("href", `https://www.saveklip.com/blog/${activeArticle.slug}`);
     } else {
       if (currentSlug || window.location.pathname !== "/blog") {
         window.history.pushState(null, "", "/blog");
       }
+
+      // Return to baseline Blog SEO tags
+      document.title = "SaveKlip Blog: Tips, Tools & Tutorials for Video Creators";
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute("content", "Explore the SaveKlip blog for up-to-date tutorials, creative strategies, and advice regarding TikTok, Instagram, content creation, and media downloads.");
+      }
+      let canonical = document.querySelector("link[rel='canonical']");
+      if (!canonical) {
+        canonical = document.createElement("link");
+        canonical.setAttribute("rel", "canonical");
+        document.head.appendChild(canonical);
+      }
+      canonical.setAttribute("href", "https://www.saveklip.com/blog");
     }
   }, [activeArticle, hasInitializedFromUrl]);
 

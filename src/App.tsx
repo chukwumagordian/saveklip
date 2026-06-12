@@ -185,13 +185,69 @@ export default function App() {
     const pageParam = params.get("page")?.toLowerCase();
     
     // If the active state matches what's in search parameters (e.g., blog), avoid wiping parameters
+    let isSkipped = false;
     if (currentPage === "blog" && (pageParam === "blog" || currentPath === "blog")) {
-      return;
+      isSkipped = true;
     }
 
-    if (currentPath !== pagePath) {
+    if (!isSkipped && currentPath !== pagePath) {
       window.history.pushState(null, "", "/" + pagePath);
     }
+
+    // Dynamic head meta & canonical tag orchestration
+    let titleStr = "Download High Quality TikTok and Instagram Videos With No Watermark - SaveKlip";
+    let descStr = "SaveKlip is a fast, safe, and free online tool to download high-quality videos from TikTok and Instagram in full HD 1080p with no watermark instantly.";
+
+    switch (currentPage) {
+      case "tiktok":
+        titleStr = "Free TikTok Video Downloader Without Watermark HD - SaveKlip";
+        descStr = "Download TikTok videos without watermark in high quality 1080p. Easily save MP4 videos and extract MP3 music with our secure, fast downloader online.";
+        break;
+      case "instagram":
+        titleStr = "Instagram Downloader: Download Reels, Videos & Stories - SaveKlip";
+        descStr = "Download Instagram reels, videos, stories, and photos in high quality. Quick, safe and completely free to save IG media online.";
+        break;
+      case "blog":
+        titleStr = "SaveKlip Blog: Tips, Tools & Tutorials for Video Creators";
+        descStr = "Explore the SaveKlip blog for up-to-date tutorials, creative strategies, and advice regarding TikTok, Instagram, content creation, and media downloads.";
+        break;
+      case "about":
+        titleStr = "About Us - SaveKlip HD Downloader";
+        descStr = "Learn more about SaveKlip, our missions, platform values, and how we provide a super fast, simple, and high-quality utility for video archiving.";
+        break;
+      case "contact":
+        titleStr = "Contact Us - Support & Feedback - SaveKlip";
+        descStr = "Have questions or need assistance? Reach out to the SaveKlip support team. We're here to help you get the most out of our video downloading capabilities.";
+        break;
+      case "privacy":
+        titleStr = "Privacy Policy - User Information Safety - SaveKlip";
+        descStr = "Read our privacy guidelines to understand how we secure your data, respects user privacy boundaries, and handles service logs securely.";
+        break;
+      case "terms":
+        titleStr = "Terms of Service - Agreement Regulations - SaveKlip";
+        descStr = "Understand our user compliance protocols, acceptable usage guidelines, intellectual property limitations, and legal terms of service.";
+        break;
+      case "dmca":
+        titleStr = "DMCA Copyright Compliance Policy - SaveKlip";
+        descStr = "Our compliance mechanism with DMCA guidelines. Read how copyright owners can file a notice of intellectual property violations.";
+        break;
+    }
+
+    document.title = titleStr;
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", descStr);
+    }
+
+    // Update canonical link
+    let canonical = document.querySelector("link[rel='canonical']");
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    const cleanPath = window.location.pathname === "/" ? "" : window.location.pathname;
+    canonical.setAttribute("href", "https://www.saveklip.com" + cleanPath);
   }, [currentPage]);
 
   // Handle popstate events to make browser Back and Forward buttons work perfectly

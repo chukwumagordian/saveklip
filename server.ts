@@ -5,6 +5,7 @@ import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { execSync, spawn } from "child_process";
 import fs from "fs";
+import { Readable } from "stream";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, query, orderBy } from "firebase/firestore";
 
@@ -858,12 +859,13 @@ app.get("/api/download", async (req, res) => {
         },
       });
 
-      if (response.ok) {
-        const arrayBuffer = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        res.setHeader("Content-Type", "audio/mp4");
-        res.setHeader("Content-Length", buffer.length);
-        res.send(buffer);
+      if (response.ok && response.body) {
+        res.setHeader("Content-Type", response.headers.get("content-type") || "audio/mp4");
+        const contentLength = response.headers.get("content-length");
+        if (contentLength) {
+          res.setHeader("Content-Length", contentLength);
+        }
+        Readable.from(response.body as any).pipe(res);
         return;
       }
     } catch (passErr) {
@@ -926,9 +928,6 @@ app.get("/api/download", async (req, res) => {
       return res.redirect(mediaUrl);
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
     if (isInline) {
       res.setHeader("Content-Disposition", "inline");
     } else {
@@ -936,9 +935,18 @@ app.get("/api/download", async (req, res) => {
     }
 
     res.setHeader("Content-Type", response.headers.get("content-type") || "video/mp4");
-    res.setHeader("Content-Length", buffer.length);
+    
+    const contentLength = response.headers.get("content-length");
+    if (contentLength) {
+      res.setHeader("Content-Length", contentLength);
+    }
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.send(buffer);
+
+    if (response.body) {
+      Readable.from(response.body as any).pipe(res);
+    } else {
+      res.status(500).send("No readable media body stream.");
+    }
   } catch (error: any) {
     console.log("Secondary stream routing active for media content.");
     // Prioritize direct 302/307 redirect so the browser fetches the original media directly, bypasses server blocks & delivers the actual video!
@@ -955,14 +963,21 @@ app.get("/api/download", async (req, res) => {
 
         console.log(`Fetching proxy fallback video for platform.`);
         const fbRes = await fetch(fallbackUrl);
-        const arrayBuffer = await fbRes.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
 
         res.setHeader("Content-Disposition", isInline ? "inline" : `attachment; filename="${encodeURIComponent(filename)}"`);
         res.setHeader("Content-Type", "video/mp4");
-        res.setHeader("Content-Length", buffer.length);
+        
+        const fbLength = fbRes.headers.get("content-length");
+        if (fbLength) {
+          res.setHeader("Content-Length", fbLength);
+        }
         res.setHeader("Access-Control-Allow-Origin", "*");
-        res.send(buffer);
+        
+        if (fbRes.body) {
+          Readable.from(fbRes.body as any).pipe(res);
+        } else {
+          res.status(500).send("No fallback stream available.");
+        }
       } catch (fallbackErr: any) {
         console.log("Alternative stream resource fallback complete.");
         res.status(500).send("Streaming service update in progress.");

@@ -31,6 +31,28 @@ function checkFfmpeg(): boolean {
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
+// Canonical WWW Redirect & HTTPS Enforcer Middleware for Production SEO Optimization
+app.use((req, res, next) => {
+  const host = req.headers.host || "";
+  const isLocalhost = host.includes("localhost") || host.includes("127.0.0.1") || host.includes("0.0.0.0");
+  const isDevServerUrl = host.includes("europe-west2.run.app") || host.includes("ais-dev") || host.includes("ais-pre");
+
+  // Only enforce canonical redirection on production domains (e.g. saveklip.com)
+  if (!isLocalhost && !isDevServerUrl) {
+    const isHttp = req.headers["x-forwarded-proto"] === "http";
+    const hasNoWww = host.toLowerCase() === "saveklip.com";
+
+    if (hasNoWww || isHttp) {
+      // Force both SSL (https) and canonical host (www.saveklip.com)
+      const canonicalHost = "www.saveklip.com";
+      const redirectUrl = `https://${canonicalHost}${req.originalUrl || req.url}`;
+      console.log(`[SEO Redirect] Redirecting ${host}${req.url} to ${redirectUrl}`);
+      return res.redirect(301, redirectUrl);
+    }
+  }
+  next();
+});
+
 const BLOG_POSTS_FILE = path.join(process.cwd(), "blog_posts.json");
 
 interface BlogPost {
@@ -2319,6 +2341,18 @@ Please outline:
       details: error.message,
     });
   }
+});
+
+// Explicit robots.txt endpoint to guarantee clean indexation guidelines
+app.get("/robots.txt", (req, res) => {
+  res.setHeader("Content-Type", "text/plain");
+  res.send(`User-agent: *\nAllow: /\n\nSitemap: https://www.saveklip.com/sitemap.xml\n`);
+});
+
+// Explicit ads.txt endpoint to avoid HTML fallback during crawler crawls
+app.get("/ads.txt", (req, res) => {
+  res.setHeader("Content-Type", "text/plain");
+  res.send(`google.com, pub-4130682714180805, DIRECT, f08c47fec0942fa0\n`);
 });
 
 // Dynamic Sitemap XML Endpoint

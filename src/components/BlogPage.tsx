@@ -2740,64 +2740,6 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                 </div>
               </div>
 
-              {/* Permalink Section */}
-              <div className={`p-4 rounded-2xl border text-xs transition-all ${
-                isDarkMode
-                  ? "bg-neutral-900/40 border-slate-800"
-                  : "bg-purple-50/20 border-purple-100/60"
-              }`}>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 flex-wrap text-left">
-                    <span className={`font-bold uppercase tracking-wider text-[10px] ${isDarkMode ? "text-neutral-500" : "text-slate-500"}`}>
-                      Permalink:
-                    </span>
-                    <div className="font-mono flex items-center gap-1.5 flex-wrap">
-                      <span className={isDarkMode ? "text-neutral-450" : "text-slate-500"}>
-                        https://saveklip.com/blog/
-                      </span>
-                      <span className="font-extrabold text-[#14B8A6] dark:text-[#14B8A6] select-all underline">
-                        {activeArticle.slug}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto">
-                    {isLoggedIn ? (
-                      <button
-                        onClick={() => {
-                          setIsAdminMode(true);
-                          handleStartEdit(activeArticle);
-                        }}
-                        className="px-3.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer bg-[#14B8A6] text-[#0F172A] hover:bg-teal-400 transition-colors flex items-center gap-1.5"
-                      >
-                        <Edit size={11} />
-                        <span>Edit Permalink / Content</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(`https://saveklip.com/blog/${activeArticle.slug}`);
-                          setCopied(true);
-                          setSuccessMessage("Permalink copied to clipboard!");
-                          setTimeout(() => {
-                            setCopied(false);
-                            setSuccessMessage("");
-                          }, 2500);
-                        }}
-                        className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer border flex items-center gap-1.5 ${
-                          isDarkMode
-                            ? "bg-neutral-800 hover:bg-neutral-700 border-neutral-700 text-neutral-300"
-                            : "bg-white hover:bg-slate-100 border-slate-200 text-slate-705"
-                        }`}
-                      >
-                        <Share2 size={11} />
-                        <span>{copied ? "Copied Link!" : "Copy Link"}</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
               {/* Formatted body paragraph text elements */}
               {/<\/?[a-z][\s\S]*>/i.test(activeArticle.content) ? (
                 <div 

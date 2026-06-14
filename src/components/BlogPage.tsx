@@ -169,6 +169,23 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
 
+  // Permalink / Slug custom states
+  const [newSlug, setNewSlug] = useState("");
+  const [isEditingSlug, setIsEditingSlug] = useState(false);
+  const [tempSlug, setTempSlug] = useState("");
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+
+  // Auto-generate slug from title if not manually edited
+  useEffect(() => {
+    if (!isSlugManuallyEdited) {
+      const gSlug = newTitle
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
+      setNewSlug(gSlug);
+    }
+  }, [newTitle, isSlugManuallyEdited]);
+
   // References and custom word processing controls
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -804,6 +821,9 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
     setNewImageUrl(post.imageUrl || "");
     setCoverInputMode(post.imageUrl && post.imageUrl.startsWith("data:") ? "upload" : "url");
     setNewContent(post.content || "");
+    setNewSlug(post.slug || "");
+    setIsSlugManuallyEdited(true);
+    setIsEditingSlug(false);
     
     // Set content in the Rich Text Editor div
     setTimeout(() => {
@@ -826,6 +846,9 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
     setNewContent("");
     setNewExcerpt("");
     setNewImageUrl("");
+    setNewSlug("");
+    setIsSlugManuallyEdited(false);
+    setIsEditingSlug(false);
     if (editorRef.current) {
       editorRef.current.innerHTML = "";
     }
@@ -856,7 +879,8 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
         category: newCategory,
         imageUrl: newImageUrl || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1000&auto=format&fit=crop&q=80",
         author: newAuthor,
-        status: finalStatus
+        status: finalStatus,
+        slug: newSlug
       };
 
       const url = editingPost ? `/api/blog/posts/${editingPost.id}` : "/api/blog/posts";
@@ -909,6 +933,9 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
       setNewContent("");
       setNewExcerpt("");
       setNewImageUrl("");
+      setNewSlug("");
+      setIsSlugManuallyEdited(false);
+      setIsEditingSlug(false);
       if (editorRef.current) {
         editorRef.current.innerHTML = "";
       }
@@ -1312,6 +1339,111 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                               : "bg-white border-slate-200 focus:border-purple-500 text-slate-850"
                           }`}
                         />
+                      </div>
+
+                      {/* Permalink / Slug Section */}
+                      <div className={`p-3.5 rounded-2xl border transition-all text-xs ${
+                        isDarkMode
+                          ? "bg-neutral-900/60 border-neutral-800/80"
+                          : "bg-purple-50/30 border-purple-150/40"
+                      }`}>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="space-y-1 select-none">
+                            <span className={`block text-[10px] font-bold uppercase tracking-wider ${isDarkMode ? "text-neutral-500" : "text-slate-500"}`}>
+                              Permalink / URL slug
+                            </span>
+                            <div className="flex items-center gap-1 font-mono text-xs flex-wrap">
+                              <span className={isDarkMode ? "text-neutral-450" : "text-slate-500"}>
+                                https://saveklip.com/blog/
+                              </span>
+                              {!isEditingSlug ? (
+                                <>
+                                  <span className={`font-extrabold select-all rounded px-1.5 py-0.5 text-purple-600 bg-purple-500/10 dark:text-purple-400 dark:bg-purple-400/10`}>
+                                    {newSlug || "your-post-permalink"}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setTempSlug(newSlug);
+                                      setIsEditingSlug(true);
+                                    }}
+                                    className="ml-1.5 text-[10px] font-extrabold uppercase tracking-wider cursor-pointer text-[#14B8A6] hover:text-[#0D9488] transition-colors"
+                                  >
+                                    [Edit]
+                                  </button>
+                                </>
+                              ) : (
+                                <div className="flex items-center gap-1.5 mt-1 sm:mt-0">
+                                  <input
+                                    type="text"
+                                    value={tempSlug}
+                                    onChange={(e) => setTempSlug(e.target.value)}
+                                    placeholder="your-custom-slug"
+                                    className={`py-1 px-2.5 w-48 text-xs font-mono rounded-lg border focus:outline-none transition-all ${
+                                      isDarkMode
+                                        ? "bg-neutral-950 border-neutral-800 text-white focus:border-purple-500"
+                                        : "bg-white border-slate-200 focus:border-purple-500 text-slate-850"
+                                    }`}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const cleaned = tempSlug
+                                        .toLowerCase()
+                                        .replace(/[^a-z0-9-]+/g, "-")
+                                        .replace(/(^-|-$)+/g, "");
+                                      setNewSlug(cleaned);
+                                      setIsSlugManuallyEdited(true);
+                                      setIsEditingSlug(false);
+                                    }}
+                                    className="py-1 px-2.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest cursor-pointer bg-[#14B8A6] text-[#0F172A] hover:bg-teal-400 transition-colors"
+                                  >
+                                    OK
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setIsEditingSlug(false);
+                                    }}
+                                    className={`py-1 px-2 rounded-lg text-[10px] font-extrabold uppercase tracking-widest cursor-pointer border ${
+                                      isDarkMode
+                                        ? "bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white"
+                                        : "bg-white border-slate-200 text-slate-600 hover:text-slate-850"
+                                    }`}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            {isSlugManuallyEdited && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsSlugManuallyEdited(false);
+                                  const gSlug = newTitle
+                                    .toLowerCase()
+                                    .replace(/[^a-z0-9-]+/g, "-")
+                                    .replace(/(^-|-$)+/g, "");
+                                  setNewSlug(gSlug);
+                                  setTempSlug(gSlug);
+                                }}
+                                className={`text-[9.5px] font-bold uppercase tracking-wider border rounded-lg py-1 px-2 cursor-pointer transition-colors ${
+                                  isDarkMode
+                                    ? "bg-neutral-900 hover:bg-neutral-800 border-neutral-800 text-neutral-400"
+                                    : "bg-white hover:bg-slate-50 border-slate-200 text-slate-605"
+                                }`}
+                              >
+                                Reset Default
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <p className={`text-[9.5px] mt-1.5 leading-normal ${isDarkMode ? "text-neutral-500" : "text-slate-450"}`}>
+                          The URL slug defines the specific web address where this article can be accessed. You can customize this slug exactly as desired, similar to WordPress.
+                        </p>
                       </div>
 
                       <div>
@@ -2605,6 +2737,64 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                 <div className="flex items-center gap-1.5">
                   <Clock size={13} className="text-[#14B8A6]" />
                   <span>{activeArticle.readTime}</span>
+                </div>
+              </div>
+
+              {/* Permalink Section */}
+              <div className={`p-4 rounded-2xl border text-xs transition-all ${
+                isDarkMode
+                  ? "bg-neutral-900/40 border-slate-800"
+                  : "bg-purple-50/20 border-purple-100/60"
+              }`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-wrap text-left">
+                    <span className={`font-bold uppercase tracking-wider text-[10px] ${isDarkMode ? "text-neutral-500" : "text-slate-500"}`}>
+                      Permalink:
+                    </span>
+                    <div className="font-mono flex items-center gap-1.5 flex-wrap">
+                      <span className={isDarkMode ? "text-neutral-450" : "text-slate-500"}>
+                        https://saveklip.com/blog/
+                      </span>
+                      <span className="font-extrabold text-[#14B8A6] dark:text-[#14B8A6] select-all underline">
+                        {activeArticle.slug}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto">
+                    {isLoggedIn ? (
+                      <button
+                        onClick={() => {
+                          setIsAdminMode(true);
+                          handleStartEdit(activeArticle);
+                        }}
+                        className="px-3.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer bg-[#14B8A6] text-[#0F172A] hover:bg-teal-400 transition-colors flex items-center gap-1.5"
+                      >
+                        <Edit size={11} />
+                        <span>Edit Permalink / Content</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`https://saveklip.com/blog/${activeArticle.slug}`);
+                          setCopied(true);
+                          setSuccessMessage("Permalink copied to clipboard!");
+                          setTimeout(() => {
+                            setCopied(false);
+                            setSuccessMessage("");
+                          }, 2500);
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer border flex items-center gap-1.5 ${
+                          isDarkMode
+                            ? "bg-neutral-800 hover:bg-neutral-700 border-neutral-700 text-neutral-300"
+                            : "bg-white hover:bg-slate-100 border-slate-200 text-slate-705"
+                        }`}
+                      >
+                        <Share2 size={11} />
+                        <span>{copied ? "Copied Link!" : "Copy Link"}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 

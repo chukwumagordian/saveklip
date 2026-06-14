@@ -500,7 +500,7 @@ app.get("/api/blog/posts", async (req, res) => {
 });
 
 app.post("/api/blog/posts", async (req, res) => {
-  const { token, title, content: rawContent, excerpt, category, imageUrl: rawImageUrl, author, status } = req.body;
+  const { token, title, content: rawContent, excerpt, category, imageUrl: rawImageUrl, author, status, slug: customSlug } = req.body;
   
   if (token !== "SUPER_SECRET_ADMIN_TOKEN_123") {
     return res.status(401).json({ error: "Access denied. Invalid credentials token." });
@@ -512,9 +512,9 @@ app.post("/api/blog/posts", async (req, res) => {
 
   const { content, imageUrl } = await processBase64InPost({ content: rawContent, imageUrl: rawImageUrl });
 
-  const slug = title
+  const slug = (customSlug || title)
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^a-z0-9-]+/g, "-")
     .replace(/(^-|-$)+/g, "");
 
   const newPost: BlogPost = {
@@ -554,7 +554,7 @@ app.post("/api/blog/posts", async (req, res) => {
 
 app.put("/api/blog/posts/:id", async (req, res) => {
   const { id } = req.params;
-  const { token, title, content: rawContent, excerpt, category, imageUrl: rawImageUrl, author, status } = req.body;
+  const { token, title, content: rawContent, excerpt, category, imageUrl: rawImageUrl, author, status, slug: customSlug } = req.body;
 
   if (token !== "SUPER_SECRET_ADMIN_TOKEN_123") {
     return res.status(401).json({ error: "Access denied. Invalid credentials token." });
@@ -594,9 +594,9 @@ app.put("/api/blog/posts/:id", async (req, res) => {
     return res.status(404).json({ error: "Post not found." });
   }
 
-  const slug = title
+  const slug = (customSlug || title)
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^a-z0-9-]+/g, "-")
     .replace(/(^-|-$)+/g, "");
 
   const updatedPost: BlogPost = {

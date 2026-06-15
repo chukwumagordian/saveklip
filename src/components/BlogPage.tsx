@@ -1105,14 +1105,10 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
             </div>
           )}
 
-          {!isAdminMode && (
+          {!isAdminMode && activeArticle && (
             <button
               onClick={() => {
-                if (activeArticle) {
-                  setActiveArticle(null);
-                } else {
-                  setCurrentPage("home");
-                }
+                setActiveArticle(null);
               }}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer border ${
                 isDarkMode 
@@ -1121,7 +1117,7 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
               }`}
             >
               <ArrowLeft size={13} />
-              <span>{activeArticle ? "Back to Articles" : (t.home || "Home Downloader")}</span>
+              <span>Back to Articles</span>
             </button>
           )}
 

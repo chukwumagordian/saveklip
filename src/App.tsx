@@ -28,7 +28,9 @@ import {
   RefreshCw,
   ArrowRight,
   Cloud,
-  Globe
+  Globe,
+  Menu,
+  X
 } from "lucide-react";
 import { MediaMetadata, FAQItem, VideoOption, AudioOption } from "./types";
 import LegalPages from "./components/LegalPages";
@@ -145,6 +147,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<MediaMetadata | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isAdsenseMenuOpen, setIsAdsenseMenuOpen] = useState(false);
 
   // Download state trackers
   const [activeDownloadId, setActiveDownloadId] = useState<string | null>(null);
@@ -615,6 +618,140 @@ export default function App() {
   return (
     <div className={`min-h-screen font-sans transition-colors duration-300 ${isDarkMode ? "bg-[#0B0F19] text-slate-100" : "bg-white text-slate-900"}`}>
       
+      {/* Google AdSense Navigation Drawer */}
+      <AnimatePresence>
+        {isAdsenseMenuOpen && (
+          <>
+            {/* Backdrop Blur Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAdsenseMenuOpen(false)}
+              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+              id="adsense-menu-overlay"
+            />
+
+            {/* Sidebar Content drawer */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className={`fixed top-0 right-0 h-full w-[280px] sm:w-[320px] z-50 shadow-2xl flex flex-col justify-between border-l ${
+                isDarkMode
+                  ? "bg-[#0B0F19] border-slate-800 text-slate-100"
+                  : "bg-white border-slate-100 text-slate-900"
+              }`}
+              id="adsense-menu-drawer"
+            >
+              {/* Header inside drawer */}
+              <div className={`p-5 flex items-center justify-between border-b ${
+                isDarkMode ? "border-slate-800/80" : "border-slate-150"
+              }`}>
+                <div className="flex flex-col gap-0.5 select-none">
+                  <span className={`font-extrabold tracking-tight text-lg ${
+                    isDarkMode ? "text-white" : "text-[#0F172A]"
+                  }`}>
+                    SaveKlip<span className="text-[#14B8A6]">.</span>
+                  </span>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                    isDarkMode ? "text-[#14B8A6]" : "text-[#0D9488]"
+                  }`}>
+                    AdSense Navigation
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsAdsenseMenuOpen(false)}
+                  id="adsense-menu-close"
+                  className={`p-1.5 rounded-xl transition-all border cursor-pointer ${
+                    isDarkMode
+                      ? "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-white"
+                      : "bg-slate-50 hover:bg-slate-100 border-slate-100 text-slate-500 hover:text-slate-900"
+                  }`}
+                  title="Close Menu"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              {/* Menu items inside drawer list */}
+              <div className="flex-1 p-6 space-y-6 overflow-y-auto">
+                <div className="space-y-2">
+                  <span className={`block text-[10px] font-bold uppercase tracking-widest ${
+                    isDarkMode ? "text-slate-500" : "text-slate-400"
+                  }`}>
+                    Core Pages
+                  </span>
+                  <nav className="space-y-1">
+                    {[
+                      { key: "home", label: t.home || "Home" },
+                      { key: "blog", label: t.blog || "Blog" },
+                    ].map((item) => (
+                      <button
+                        key={item.key}
+                        onClick={() => {
+                          setCurrentPage(item.key as any);
+                          setIsAdsenseMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-semibold transition-all flex items-center justify-between cursor-pointer ${
+                          currentPage === item.key
+                            ? "bg-[#14B8A6]/10 text-[#14B8A6]"
+                            : isDarkMode
+                            ? "hover:bg-slate-900/60 text-slate-300 hover:text-white"
+                            : "hover:bg-slate-50 text-slate-700 hover:text-[#0F172A]"
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        {currentPage === item.key && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#14B8A6]" />
+                        )}
+                      </button>
+                    ))}
+                  </nav>
+                </div>
+
+                <div className="space-y-2">
+                  <span className={`block text-[10px] font-bold uppercase tracking-widest ${
+                    isDarkMode ? "text-slate-500" : "text-slate-400"
+                  }`}>
+                    Corporate Info
+                  </span>
+                  <nav className="space-y-1">
+                    {[
+                      { key: "about", label: t.aboutUs || "About Us" },
+                      { key: "contact", label: t.contactUs || "Contact Us" },
+                    ].map((item) => (
+                      <button
+                        key={item.key}
+                        onClick={() => {
+                          setCurrentPage(item.key as any);
+                          setIsAdsenseMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-3 rounded-2xl text-sm font-semibold transition-all flex items-center justify-between cursor-pointer ${
+                          currentPage === item.key
+                            ? "bg-[#14B8A6]/10 text-[#14B8A6]"
+                            : isDarkMode
+                            ? "hover:bg-slate-900/60 text-slate-300 hover:text-white"
+                            : "hover:bg-slate-50 text-slate-700 hover:text-[#0F172A]"
+                        }`}
+                      >
+                        <span>{item.label}</span>
+                        {currentPage === item.key && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#14B8A6]" />
+                        )}
+                      </button>
+                    ))}
+                  </nav>
+                </div>
+              </div>
+
+
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Toast Alert showing language switch detection */}
       <AnimatePresence>
         {showDetectedToast && (
@@ -752,13 +889,29 @@ export default function App() {
 
             {/* Dark & light theme switcher */}
             <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
+               onClick={() => setIsDarkMode(!isDarkMode)}
               id="theme-toggle"
               className={`p-2 rounded-xl transition-all border cursor-pointer ${isDarkMode ? "bg-slate-900 hover:bg-slate-800 border-slate-800 text-amber-400" : "bg-slate-50 hover:bg-slate-100 border-slate-100 text-slate-700"}`}
               title={isDarkMode ? t.themeLight : t.themeDark}
             >
               {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
             </button>
+
+            {/* Google AdSense Compliant Hamburger Menu button (desktop and mobile) */}
+            {["home", "tiktok", "instagram", "blog"].includes(currentPage) && (
+              <button
+                onClick={() => setIsAdsenseMenuOpen(true)}
+                id="adsense-menu-button"
+                className={`p-2 rounded-xl transition-all border cursor-pointer hover:scale-105 active:scale-[0.98] flex items-center justify-center ${
+                  isDarkMode 
+                    ? "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-100" 
+                    : "bg-slate-50 hover:bg-slate-100 border-slate-100 text-slate-800"
+                }`}
+                title="AdSense Navigation Menu"
+              >
+                <Menu size={16} />
+              </button>
+            )}
           </div>
         </div>
       </header>

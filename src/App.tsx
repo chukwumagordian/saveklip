@@ -249,8 +249,10 @@ export default function App() {
       canonical.setAttribute("rel", "canonical");
       document.head.appendChild(canonical);
     }
-    const cleanPath = window.location.pathname === "/" ? "" : window.location.pathname;
-    canonical.setAttribute("href", "https://www.saveklip.com" + cleanPath);
+    const cleanPath = window.location.pathname.endsWith("/") && window.location.pathname !== "/"
+      ? window.location.pathname.slice(0, -1)
+      : window.location.pathname;
+    canonical.setAttribute("href", "https://www.saveklip.com" + (cleanPath === "/" ? "" : cleanPath));
   }, [currentPage]);
 
   // Handle popstate events to make browser Back and Forward buttons work perfectly

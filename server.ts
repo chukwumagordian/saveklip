@@ -40,13 +40,12 @@ app.use((req, res, next) => {
   // Only enforce canonical redirection on production domains (e.g. saveklip.com)
   if (!isLocalhost && !isDevServerUrl) {
     const isHttp = req.headers["x-forwarded-proto"] === "http";
-    const hasNoWww = host.toLowerCase() === "saveklip.com";
 
-    if (hasNoWww || isHttp) {
-      // Force both SSL (https) and canonical host (www.saveklip.com)
-      const canonicalHost = "www.saveklip.com";
+    if (isHttp) {
+      // Force SSL (https) and normalize to canonical host www.saveklip.com
+      const canonicalHost = host.toLowerCase() === "saveklip.com" ? "www.saveklip.com" : host;
       const redirectUrl = `https://${canonicalHost}${req.originalUrl || req.url}`;
-      console.log(`[SEO Redirect] Redirecting ${host}${req.url} to ${redirectUrl}`);
+      console.log(`[SEO Redirect] Redirecting insecure request ${host}${req.url} to ${redirectUrl}`);
       return res.redirect(301, redirectUrl);
     }
   }
@@ -2500,7 +2499,8 @@ async function startServer() {
 
         let title = "Download High Quality TikTok and Instagram Videos With No Watermark - SaveKlip";
         let description = "SaveKlip is a fast, safe, and free online tool to download high-quality videos from TikTok and Instagram in 1080p HD with no watermark instantly.";
-        let canonicalUrl = "https://www.saveklip.com" + (req.path === "/" ? "" : req.path);
+        const cleanReqPath = req.path.endsWith("/") && req.path !== "/" ? req.path.slice(0, -1) : req.path;
+        let canonicalUrl = "https://www.saveklip.com" + (cleanReqPath === "/" ? "" : cleanReqPath);
 
         if (segment === "tiktok") {
           title = "Free TikTok Video Downloader Without Watermark HD - SaveKlip";

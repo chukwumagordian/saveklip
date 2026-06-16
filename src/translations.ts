@@ -254,7 +254,7 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     ],
     disclaimerHeader: "Disclaimer:",
     disclaimerText: "This application is a tool for personal backup archiving and media exploration. We are not allied or officially affiliated with TikTok, ByteDance, Instagram, Meta, or any related social media networks. Brand copyrights belong entirely to their respective media owners. Always respect digital intellectual property rules before repurposing content.",
-    copyrightText: "© 2026 Gordian. Realized in compliance with high performance web protocols.",
+    copyrightText: "© 2026 Jinald Inc",
     detectedAlert: "Language automatically changed based on your region preference:"
   },
   "en-gb": {
@@ -386,7 +386,7 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     ],
     disclaimerHeader: "Disclaimer:",
     disclaimerText: "This application is a tool for personal backup archiving and media exploration. We are not allied or officially affiliated with TikTok, ByteDance, Instagram, Meta, or any related social media networks. Brand copyrights belong entirely to their respective media owners. Always respect digital intellectual property rules before repurposing content.",
-    copyrightText: "© 2026 Gordian. Realized in compliance with high performance web protocols.",
+    copyrightText: "© 2026 Jinald Inc",
     detectedAlert: "Language automatically changed based on your region preference:"
   },
   es: {
@@ -518,7 +518,7 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     ],
     disclaimerHeader: "Descargo de responsabilidad:",
     disclaimerText: "Esta aplicación es una herramienta para el archivo personal de copias de seguridad y la exploración de medios. No estamos aliados ni afiliados oficialmente con TikTok, ByteDance, Instagram, Meta ni ninguna red social relacionada. Los derechos de autor de las marcas pertenecen en su totalidad a sus respectivos propietarios de medios. Respete siempre las normas de propiedad intelectual digital antes de reutilizar el contenido.",
-    copyrightText: "© 2026 Gordian. Realizado en conformidad con los protocolos web de alto rendimiento.",
+    copyrightText: "© 2026 Jinald Inc",
     detectedAlert: "Idioma cambiado automáticamente según tu preferencia de región:"
   },
   fr: {
@@ -650,7 +650,7 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     ],
     disclaimerHeader: "Avertissement :",
     disclaimerText: "Cette application est un outil d'archivage personnel de sauvegardes et d'exploration de médias. Nous ne sommes pas alliés ou officiellement affiliés à TikTok, ByteDance, Instagram, Meta, ou à tout autre réseau social lié. Les droits d'auteur des marques appartiennent entièrement à leurs propriétaires respectifs. Respectez toujours les règles de propriété intellectuelle numérique avant de réutiliser du contenu.",
-    copyrightText: "© 2026 Gordian. Réalisé conformément aux protocoles web de haute performance.",
+    copyrightText: "© 2026 Jinald Inc",
     detectedAlert: "Langue modifiée automatiquement en fonction de vos préférences régionales :"
   },
   de: {
@@ -782,7 +782,7 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     ],
     disclaimerHeader: "Haftungsausschluss:",
     disclaimerText: "Diese App ist ein Werkzeug zur persönlichen Backup-Archivierung und Medienexploration. Wir stehen in keiner Allianz oder offiziellen Verbindung mit TikTok, ByteDance, Instagram, Meta oder anderen damit verbundenen sozialen Mediennetzwerken. Alle Markenrechte liegen ausschließlich bei den jeweiligen Inhabern. Bitte respektieren Sie die Urheberrechte der Künstler.",
-    copyrightText: "© 2026 Gordian. Realisiert in Übereinstimmung mit Hochleistungs-Webprotokollen.",
+    copyrightText: "© 2026 Jinald Inc",
     detectedAlert: "Sprache automatisch an Ihre regionalen Einstellungen angepasst:"
   },
   pt: {
@@ -914,7 +914,7 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     ],
     disclaimerHeader: "Isenção de responsabilidade:",
     disclaimerText: "Este aplicativo é uma ferramenta para arquivamento de backup pessoal e exploração de mídia. Não estamos aliados ou oficialmente afiliados ao TikTok, ByteDance, Instagram, Meta ou quaisquer redes sociais relacionadas. Os direitos autorais das marcas pertencem inteiramente aos seus respectivos proprietários de mídia. Respeite sempre as regras de propriedade intelectual digital antes de reutilizar o conteúdo.",
-    copyrightText: "© 2026 Gordian. Realizado em conformidade com protocolos web de alto desempenho.",
+    copyrightText: "© 2026 Jinald Inc",
     detectedAlert: "Idioma alterado automaticamente conforme a sua região:"
   },
   ar: {

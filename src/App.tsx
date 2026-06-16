@@ -687,7 +687,10 @@ export default function App() {
                   </span>
                   <nav className="space-y-1">
                     {[
-                      { key: "home", label: t.home || "Home" },
+                      { 
+                        key: "home", 
+                        label: currentPage !== "home" ? "Home (video downloader)" : (t.home || "Home")
+                      },
                       { key: "blog", label: t.blog || "Blog" },
                     ].map((item) => (
                       <button
@@ -1627,7 +1630,7 @@ export default function App() {
           )}
 
           <div className={`text-[10px] ${isDarkMode ? "text-slate-600" : "text-slate-400"}`}>
-            {t.copyrightText || "© 2026 Gordian. Realized in compliance with high performance web protocols."}
+            {t.copyrightText || "© 2026 Jinald Inc"}
           </div>
         </div>
       </footer>

@@ -549,8 +549,8 @@ export default function App() {
         }, 3000);
       } catch (fallbackErr) {
         console.error("Iframe safe fallback failed:", fallbackErr);
-        // Direct safe same-page download trigger as final resort
-        window.location.href = downloadProxyUrl;
+        // Direct secure new tab download trigger as final resort so user does not lose their active page state!
+        window.open(downloadProxyUrl, "_blank");
         setActiveDownloadId(null);
       }
     }
@@ -1282,43 +1282,41 @@ export default function App() {
                     </div>
 
                     {/* Social Stats list */}
-                    {result.platform !== "instagram" && (
-                      <div className={`grid grid-cols-4 gap-3 p-4 rounded-2xl border ${isDarkMode ? "bg-slate-900/40 border-slate-800" : "bg-[#F8FAFC] border-slate-150"}`}>
-                        
-                        <div className="text-center">
-                          <div className={`flex justify-center mb-1 ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
-                            <Eye size={14} />
-                          </div>
-                          <span className="block font-bold text-xs">{result.views}</span>
-                          <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-455"}`}>{t.views || "Views"}</span>
+                    <div className={`grid grid-cols-4 gap-3 p-4 rounded-2xl border ${isDarkMode ? "bg-slate-900/40 border-slate-800" : "bg-[#F8FAFC] border-slate-150"}`}>
+                      
+                      <div className="text-center">
+                        <div className={`flex justify-center mb-1 ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
+                          <Eye size={14} />
                         </div>
-
-                        <div className="text-center">
-                          <div className="flex justify-center mb-1 text-[#14B8A6]">
-                            <Heart size={14} fill="currentColor" />
-                          </div>
-                          <span className="block font-bold text-xs">{result.likes}</span>
-                          <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-455"}`}>{t.likes || "Likes"}</span>
-                        </div>
-
-                        <div className="text-center">
-                          <div className="flex justify-center mb-1 text-sky-500">
-                            <MessageSquare size={14} />
-                          </div>
-                          <span className="block font-bold text-xs">{result.comments}</span>
-                          <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-455"}`}>{t.comments || "Comments"}</span>
-                        </div>
-
-                        <div className="text-center">
-                          <div className="flex justify-center mb-1 text-slate-500">
-                            <Share2 size={14} />
-                          </div>
-                          <span className="block font-bold text-xs">{result.shares}</span>
-                          <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-455"}`}>{t.shares || "Shares"}</span>
-                        </div>
-
+                        <span className="block font-bold text-xs">{result.views}</span>
+                        <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-455"}`}>{t.views || "Views"}</span>
                       </div>
-                    )}
+
+                      <div className="text-center">
+                        <div className="flex justify-center mb-1 text-[#14B8A6]">
+                          <Heart size={14} fill="currentColor" />
+                        </div>
+                        <span className="block font-bold text-xs">{result.likes}</span>
+                        <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-455"}`}>{t.likes || "Likes"}</span>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="flex justify-center mb-1 text-sky-500">
+                          <MessageSquare size={14} />
+                        </div>
+                        <span className="block font-bold text-xs">{result.comments}</span>
+                        <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-455"}`}>{t.comments || "Comments"}</span>
+                      </div>
+
+                      <div className="text-center">
+                        <div className="flex justify-center mb-1 text-slate-500">
+                          <Share2 size={14} />
+                        </div>
+                        <span className="block font-bold text-xs">{result.shares}</span>
+                        <span className={`text-[8px] uppercase tracking-wider ${isDarkMode ? "text-slate-500" : "text-slate-455"}`}>{t.shares || "Shares"}</span>
+                      </div>
+
+                    </div>
                   </div>
 
                   {/* Right Column: Download formats & AI Booster engine */}
@@ -1397,15 +1395,15 @@ export default function App() {
                                   : "bg-[#0F172A] hover:bg-[#1E293B] text-white hover:scale-[1.02] shadow-sm"
                               }`}
                             >
-                              {isDownloading ? (
+                              {downloadSuccess && isDownloading ? (
+                                <>
+                                  <Check size={13} className="text-teal-400 font-bold" />
+                                  <span className="text-teal-400">{t.finishedLabel || "Finished!"}</span>
+                                </>
+                              ) : isDownloading ? (
                                 <>
                                   <Loader2 size={13} className="animate-spin" />
                                   <span>{downloadProgress}% {t.savedLabel || "Saved"}</span>
-                                </>
-                              ) : downloadSuccess && isDownloading ? (
-                                <>
-                                  <Check size={13} />
-                                  <span>{t.finishedLabel || "Finished!"}</span>
                                 </>
                               ) : (
                                 <>
@@ -1453,7 +1451,12 @@ export default function App() {
                               : "bg-[#0F172A] hover:bg-[#1E293B] text-white hover:scale-[1.02]"
                           }`}
                         >
-                          {activeDownloadId === "audio-extract" ? (
+                          {downloadSuccess && activeDownloadId === "audio-extract" ? (
+                            <>
+                              <Check size={13} className="text-teal-400 font-bold" />
+                              <span className="text-teal-400">{t.finishedLabel || "Finished!"}</span>
+                            </>
+                          ) : activeDownloadId === "audio-extract" ? (
                             <>
                               <Loader2 size={13} className="animate-spin" />
                               <span>{downloadProgress}% {t.savedLabel || "Saved"}</span>

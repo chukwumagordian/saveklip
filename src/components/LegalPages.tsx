@@ -48,7 +48,7 @@ export default function LegalPages({ currentPage, setCurrentPage, isDarkMode, la
                 <h1 className={`text-2xl sm:text-3xl font-extrabold tracking-tight ${isDarkMode ? "text-white" : "text-slate-900"}`}>
                   About Us
                 </h1>
-                <p className={`text-xs sm:text-sm ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>
+                <p className={`text-xs sm:text-sm ${isDarkMode ? "text-slate-400" : "text-slate-650"}`}>
                   Empowering digital creators and strategic content consumers with valuable utility tools and professional insights.
                 </p>
               </div>
@@ -59,7 +59,7 @@ export default function LegalPages({ currentPage, setCurrentPage, isDarkMode, la
                 <h2 className={`text-lg sm:text-xl font-bold ${isDarkMode ? "text-[#14B8A6]" : "text-[#0F172A]"}`}>
                   Who We Are
                 </h2>
-                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300">
+                <p className={`text-sm sm:text-base leading-relaxed ${isDarkMode ? "text-slate-300" : "text-slate-800"}`}>
                   Welcome to our premier <strong>Digital Creator Resources &amp; Tools Platform</strong>. We are a team of digital asset specialists, web developers, and creative directors committed to building high-value, high-performance productivity utilities and publishing resources. Our goal is to provide digital content creators, online marketers, curators, educators, and mainstream media consumers with a robust ecosystem to enhance their daily online routines.
                 </p>
               </section>
@@ -68,10 +68,10 @@ export default function LegalPages({ currentPage, setCurrentPage, isDarkMode, la
                 <h2 className={`text-lg sm:text-xl font-bold ${isDarkMode ? "text-[#14B8A6]" : "text-[#0F172A]"}`}>
                   Our Core Philosophy
                 </h2>
-                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300">
+                <p className={`text-sm sm:text-base leading-relaxed ${isDarkMode ? "text-slate-300" : "text-slate-800"}`}>
                   In today's dynamic online ecosystem, the line between content creation and smart content consumption has dissolved. Whether you are an aspiring creator curating high-quality research, a social media marketer analyzing viral campaign layouts, or an everyday web user striving to organize and master your online feed, having access to clear explanations, creator analytics, and helpful digital utilities is essential.
                 </p>
-                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300">
+                <p className={`text-sm sm:text-base leading-relaxed ${isDarkMode ? "text-slate-300" : "text-slate-800"}`}>
                   We believe in elevating digital literacy. By combining professional, human-curated industry articles with original analytical web tools, we provide our community with the strategic leverage they need to build, protect, and optimize their online presence and digital portfolios.
                 </p>
               </section>
@@ -81,13 +81,13 @@ export default function LegalPages({ currentPage, setCurrentPage, isDarkMode, la
                   What We Offer
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-2">
-                  <div className={`p-4 rounded-xl border ${isDarkMode ? "border-slate-800 bg-slate-900/20" : "border-slate-100 bg-slate-50/50"}`}>
+                  <div className={`p-4 rounded-xl border ${isDarkMode ? "border-slate-800 bg-slate-900/20" : "border-slate-150 bg-slate-50/50"}`}>
                     <h3 className={`font-bold mb-1 ${isDarkMode ? "text-white" : "text-slate-900"}`}>Creator Articles &amp; Insights</h3>
-                    <p className={`${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Comprehensive case studies, platform guides, algorithm deep-dives, and visual marketing reviews written by digital experts.</p>
+                    <p className={`${isDarkMode ? "text-slate-400" : "text-slate-700"}`}>Comprehensive case studies, platform guides, algorithm deep-dives, and visual marketing reviews written by digital experts.</p>
                   </div>
-                  <div className={`p-4 rounded-xl border ${isDarkMode ? "border-slate-800 bg-slate-900/20" : "border-slate-100 bg-slate-50/50"}`}>
+                  <div className={`p-4 rounded-xl border ${isDarkMode ? "border-slate-800 bg-slate-900/20" : "border-slate-150 bg-slate-50/50"}`}>
                     <h3 className={`font-bold mb-1 ${isDarkMode ? "text-white" : "text-slate-900"}`}>Media Workflow Utilities</h3>
-                    <p className={`${isDarkMode ? "text-slate-400" : "text-slate-500"}`}>Optimized client-side tools designed to streamline asset organization, preview testing, and layout diagnostics for creative networks.</p>
+                    <p className={`${isDarkMode ? "text-slate-400" : "text-slate-700"}`}>Optimized client-side tools designed to streamline asset organization, preview testing, and layout diagnostics for creative networks.</p>
                   </div>
                 </div>
               </section>
@@ -96,7 +96,7 @@ export default function LegalPages({ currentPage, setCurrentPage, isDarkMode, la
                 <h2 className={`text-lg sm:text-xl font-bold ${isDarkMode ? "text-[#14B8A6]" : "text-[#0F172A]"}`}>
                   Intellectual Integrity &amp; Compliance Accord
                 </h2>
-                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300">
+                <p className={`text-sm sm:text-base leading-relaxed ${isDarkMode ? "text-slate-300" : "text-slate-800"}`}>
                   Our service operates with absolute commitment to copyright standards, fair use doctrines, and creative licenses. All digital helper modules on our platform are designed to facilitate standard legal workspaces, authorized academic analysis, and personal offline layout reviews of creators' own licensed assets. We strictly promote original, high-integrity content publication across the web and are fully compliant with digital safety policies.
                 </p>
               </section>
@@ -104,15 +104,15 @@ export default function LegalPages({ currentPage, setCurrentPage, isDarkMode, la
               <section className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-dashed border-slate-200 dark:border-slate-800">
                 <div className="p-4 rounded-xl border border-slate-150 dark:border-slate-800 space-y-1">
                   <span className="text-xs uppercase tracking-widest font-mono text-[#14B8A6] font-bold">Curated Intelligence</span>
-                  <p className="text-xs opacity-90 font-medium">Original, high-value visual communication case studies and tactical reviews.</p>
+                  <p className={`text-xs font-semibold ${isDarkMode ? "text-slate-400" : "text-slate-800"}`}>Original, high-value visual communication case studies and tactical reviews.</p>
                 </div>
                 <div className="p-4 rounded-xl border border-slate-150 dark:border-slate-800 space-y-1">
                   <span className="text-xs uppercase tracking-widest font-mono text-[#14B8A6] font-bold">Privacy-First Core</span>
-                  <p className="text-xs opacity-90 font-medium font-sans">No persistent user tracking, data logging, or intrusive registration structures.</p>
+                  <p className={`text-xs font-semibold ${isDarkMode ? "text-slate-400" : "text-slate-800 font-sans"}`}>No persistent user tracking, data logging, or intrusive registration structures.</p>
                 </div>
                 <div className="p-4 rounded-xl border border-slate-150 dark:border-slate-800 space-y-1">
                   <span className="text-xs uppercase tracking-widest font-mono text-[#14B8A6] font-bold">Ethical &amp; Safe Tools</span>
-                  <p className="text-xs opacity-90 font-medium">Standard browser-authorized client layout helpers for productive creators.</p>
+                  <p className={`text-xs font-semibold ${isDarkMode ? "text-slate-400" : "text-slate-800"}`}>Standard browser-authorized client layout helpers for productive creators.</p>
                 </div>
               </section>
             </div>

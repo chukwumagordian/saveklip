@@ -647,36 +647,6 @@ export default function App() {
               }`}
               id="adsense-menu-drawer"
             >
-              {/* Header inside drawer */}
-              <div className={`p-5 flex items-center justify-between border-b ${
-                isDarkMode ? "border-slate-800/80" : "border-slate-150"
-              }`}>
-                <div className="flex flex-col gap-0.5 select-none">
-                  <span className={`font-extrabold tracking-tight text-lg ${
-                    isDarkMode ? "text-white" : "text-[#0F172A]"
-                  }`}>
-                    SaveKlip<span className="text-[#14B8A6]">.</span>
-                  </span>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                    isDarkMode ? "text-[#14B8A6]" : "text-[#0D9488]"
-                  }`}>
-                    AdSense Navigation
-                  </span>
-                </div>
-                <button
-                  onClick={() => setIsAdsenseMenuOpen(false)}
-                  id="adsense-menu-close"
-                  className={`p-1.5 rounded-xl transition-all border cursor-pointer ${
-                    isDarkMode
-                      ? "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-white"
-                      : "bg-slate-50 hover:bg-slate-100 border-slate-100 text-slate-500 hover:text-slate-900"
-                  }`}
-                  title="Close Menu"
-                >
-                  <X size={15} />
-                </button>
-              </div>
-
               {/* Menu items inside drawer list */}
               <div className="flex-1 p-6 space-y-6 overflow-y-auto">
                 <div className="space-y-2">
@@ -915,7 +885,7 @@ export default function App() {
                     ? "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-100"
                     : "bg-slate-50 hover:bg-slate-100 border-slate-100 text-slate-800"
               }`}
-              title={isAdsenseMenuOpen ? "Close Menu" : "AdSense Navigation Menu"}
+              title={isAdsenseMenuOpen ? "Close Menu" : "Navigation Menu"}
             >
               <motion.div
                 key={isAdsenseMenuOpen ? "close-icon" : "menu-icon"}

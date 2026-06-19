@@ -630,7 +630,7 @@ export default function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsAdsenseMenuOpen(false)}
-              className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+              className="fixed top-16 inset-x-0 bottom-0 z-40 bg-black/60 backdrop-blur-sm"
               id="adsense-menu-overlay"
             />
 
@@ -640,7 +640,7 @@ export default function App() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className={`fixed top-0 right-0 h-full w-[280px] sm:w-[320px] z-50 shadow-2xl flex flex-col justify-between border-l ${
+              className={`fixed top-16 right-0 bottom-0 h-[calc(100vh-64px)] w-[280px] sm:w-[320px] z-40 shadow-2xl flex flex-col justify-between border-l ${
                 isDarkMode
                   ? "bg-[#0B0F19] border-slate-800 text-slate-100"
                   : "bg-white border-slate-100 text-slate-900"
@@ -903,20 +903,30 @@ export default function App() {
             </button>
 
             {/* Google AdSense Compliant Hamburger Menu button (desktop and mobile) */}
-            {["home", "tiktok", "instagram", "blog"].includes(currentPage) && (
-              <button
-                onClick={() => setIsAdsenseMenuOpen(true)}
-                id="adsense-menu-button"
-                className={`p-2 rounded-xl transition-all border cursor-pointer hover:scale-105 active:scale-[0.98] flex items-center justify-center ${
-                  isDarkMode 
-                    ? "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-100" 
+            <button
+              onClick={() => setIsAdsenseMenuOpen(!isAdsenseMenuOpen)}
+              id="adsense-menu-button"
+              className={`p-2 rounded-xl transition-all border cursor-pointer hover:scale-105 active:scale-[0.98] flex items-center justify-center ${
+                isAdsenseMenuOpen
+                  ? isDarkMode
+                    ? "bg-[#14B8A6]/20 border-[#14B8A6]/30 text-[#14B8A6]"
+                    : "bg-[#14B8A6]/10 border-[#14B8A6]/20 text-[#0F172A]"
+                  : isDarkMode
+                    ? "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-100"
                     : "bg-slate-50 hover:bg-slate-100 border-slate-100 text-slate-800"
-                }`}
-                title="AdSense Navigation Menu"
+              }`}
+              title={isAdsenseMenuOpen ? "Close Menu" : "AdSense Navigation Menu"}
+            >
+              <motion.div
+                key={isAdsenseMenuOpen ? "close-icon" : "menu-icon"}
+                initial={{ rotate: -90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: 90, opacity: 0 }}
+                transition={{ duration: 0.15 }}
               >
-                <Menu size={16} />
-              </button>
-            )}
+                {isAdsenseMenuOpen ? <X size={16} /> : <Menu size={16} />}
+              </motion.div>
+            </button>
           </div>
         </div>
       </header>

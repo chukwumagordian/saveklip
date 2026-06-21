@@ -13,7 +13,7 @@ export interface AudioOption {
 }
 
 export interface MediaMetadata {
-  platform: "tiktok" | "instagram";
+  platform: "tiktok" | "instagram" | "facebook";
   title: string;
   creator: string;
   duration: string;

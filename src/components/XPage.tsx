@@ -15,9 +15,11 @@ import {
   ShieldCheck, 
   CheckCircle,
   AlertCircle,
-  Loader2
+  Loader2,
+  Clipboard
 } from "lucide-react";
 import { MediaMetadata } from "../types";
+import { BrushHighlight } from "./BrushHighlight";
 
 interface XPageProps {
   isDarkMode: boolean;
@@ -227,115 +229,119 @@ export default function XPage({ isDarkMode, setCurrentPage }: XPageProps) {
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"} pb-16`}>
-      {/* Mini Top Banner */}
-      <div className={`border-b ${isDarkMode ? "border-slate-800 bg-slate-900/40" : "border-slate-200 bg-white/80"} sticky top-0 z-40 backdrop-blur-md`}>
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <button 
-            onClick={() => setCurrentPage("home")}
-            className={`flex items-center gap-2 text-sm font-medium ${isDarkMode ? "text-slate-400 hover:text-slate-200" : "text-slate-600 hover:text-slate-800"} transition`}
-            id="back-home-button"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
-          </button>
-          <div className="flex items-center gap-2 font-semibold">
-            <img 
-              src="https://cdn.prod.website-files.com/5d66bdc65e51a0d114d15891/64cebdd90aef8ef8c749e848_X-EverythingApp-Logo-Twitter.jpg" 
-              alt="X Logo" 
-              className="w-5 h-5 object-cover rounded-md" 
-              referrerPolicy="no-referrer"
-            />
-            <span>X (Twitter) Downloader</span>
-          </div>
-          <div className="w-20"></div> {/* Spacer balance */}
-        </div>
+    <div className="max-w-4xl mx-auto px-4 pt-4 pb-16">
+      {/* Main Pitch */}
+      <div className="text-center max-w-3xl mx-auto mb-10">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className={`block w-fit mx-auto items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-4 border ${isDarkMode ? "bg-slate-900 border-slate-800 text-[#14B8A6]" : "bg-[#14B8A6]/10 border-[#14B8A6]/20 text-[#14B8A6]"}`}
+        >
+          <span className="font-semibold">Zero Watermarks • Full HD MP4</span>
+        </motion.div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className={`text-4xl sm:text-5xl lg:text-3xl font-extrabold tracking-tight mb-5 ${isDarkMode ? "text-slate-100" : "text-[#0F172A]"}`}
+        >
+          <BrushHighlight text="Download X / Twitter Videos in High Quality" isDarkMode={isDarkMode} />
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className={`text-base sm:text-sm ${isDarkMode ? "text-slate-400" : "text-slate-550"} max-w-2xl mx-auto font-medium leading-relaxed`}
+        >
+          Looking for a fast, free, and secure way to download X videos and save Twitter GIFs? Our advanced X video downloader extracts full high-definition (HD) MP4 video tracks directly from the official content delivery network. Bypassing stream blockages, hotlinking protections, and regional redirects has never been simpler. Just paste your link above to convert and save X videos in seconds!
+        </motion.p>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 pt-8">
-        {/* Main Pitch */}
-        <div className="text-center mb-10">
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="inline-flex p-3 rounded-2xl bg-[#14B8A6]/10 text-[#14B8A6] mb-4 border border-[#14B8A6]/20"
-          >
-            <img 
-              src="https://cdn.prod.website-files.com/5d66bdc65e51a0d114d15891/64cebdd90aef8ef8c749e848_X-EverythingApp-Logo-Twitter.jpg" 
-              alt="X Logo" 
-              className="w-8 h-8 object-cover rounded-lg" 
-              referrerPolicy="no-referrer"
-            />
-          </motion.div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-3">
-            X (Twitter) Video Downloader
-          </h1>
-          <p className={`text-base max-w-xl mx-auto ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
-            Download X (Twitter) videos in High Quality
-          </p>
-        </div>
-
         {/* Input Card Container */}
-        <div className={`p-6 md:p-8 rounded-3xl border mb-8 shadow-sm ${
-          isDarkMode ? "bg-slate-900/40 border-slate-800/80" : "bg-white border-slate-200"
+        <div className={`p-6 rounded-3xl border mb-12 shadow-sm ${
+          isDarkMode ? "bg-[#101626] border-slate-800/85 backdrop-blur-xl" : "bg-[#F8FAFC] border-slate-200/80 shadow-md shadow-slate-200/20"
         }`}>
           {/* Auto Downloader Box */}
           <form onSubmit={handleDownload} className="space-y-4">
-            <label htmlFor="twitter-url-input" className="block text-sm font-semibold mb-1">
-              Enter X or Twitter post Link:
+            <label htmlFor="twitter-url-input" className={`block text-xs font-semibold uppercase tracking-wider mb-2.5 ml-1 ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
+              Paste X (Twitter) URL Link
             </label>
-            <div className="relative">
-              <input
-                id="twitter-url-input"
-                type="url"
-                placeholder="e.g. https://x.com/SpaceX/status/1781467451430932599"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className={`w-full px-5 py-4 pl-12 pr-28 rounded-2xl border text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:border-[#14B8A6] transition-all ${
-                  isDarkMode 
-                    ? "bg-slate-900 border-slate-800 text-slate-100 placeholder:text-slate-500" 
-                    : "bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400"
-                }`}
-                required
-              />
-              <img 
-                src="https://cdn.prod.website-files.com/5d66bdc65e51a0d114d15891/64cebdd90aef8ef8c749e848_X-EverythingApp-Logo-Twitter.jpg" 
-                alt="X Logo" 
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 object-cover rounded" 
-                referrerPolicy="no-referrer" 
-              />
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={handlePaste}
-                  className={`px-3 py-2 rounded-lg text-xs font-semibold ${
-                    isDarkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-slate-200 hover:bg-slate-300 text-slate-700"
-                  } transition cursor-pointer`}
-                  id="url-paste-button"
-                >
-                  Paste
-                </button>
-              </div>
-            </div>
+            <div className="relative flex flex-col md:flex-row gap-3">
+              <div className="relative flex-1">
+                <input
+                  id="twitter-url-input"
+                  type="url"
+                  placeholder="e.g. https://x.com/SpaceX/status/1781467451430932599"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className={`w-full pl-5 pr-20 sm:pr-28 py-4 rounded-2xl text-sm transition-all focus:outline-none focus:ring-2 border ${
+                    isDarkMode
+                      ? "bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-100 focus:ring-[#14B8A6]/30 focus:border-[#14B8A6]"
+                      : "bg-white border-slate-200 hover:border-slate-300 text-slate-900 focus:ring-[#14B8A6]/20 focus:border-[#14B8A6]"
+                  }`}
+                  required
+                />
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 rounded-2xl bg-[#14B8A6] hover:bg-[#0D9488] text-white font-bold text-sm tracking-wide transition flex items-center justify-center gap-2 shadow-lg shadow-[#14B8A6]/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              id="twitter-retrieve-button"
-            >
-              {loading ? (
-                <>
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                  Extracting Media Streams...
-                </>
-              ) : (
-                <>
-                  <Download className="w-5 h-5" />
-                  Download Video
-                </>
-              )}
-            </button>
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handlePaste}
+                    className={`p-2 rounded-lg text-xs font-semibold ${
+                      isDarkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-slate-200 hover:bg-slate-300 text-slate-700"
+                    } transition cursor-pointer`}
+                    id="url-paste-button"
+                    title="Paste Link"
+                  >
+                    <Clipboard className="w-4 h-4" />
+                  </button>
+
+                  {url && (
+                    <button
+                      type="button"
+                      onClick={() => { setUrl(""); setResult(null); }}
+                      className={`p-2 rounded-lg text-xs transition-colors cursor-pointer ${
+                        isDarkMode 
+                          ? "text-slate-400 hover:bg-slate-800 hover:text-white" 
+                          : "text-slate-400 hover:bg-slate-200 hover:text-slate-800"
+                      }`}
+                      title="Clear link"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                id="twitter-retrieve-button"
+                disabled={loading || !url.trim()}
+                className={`px-8 py-4 rounded-2xl font-semibold text-white tracking-wide cursor-pointer transition-all flex items-center justify-center gap-2 ${
+                  loading || !url.trim()
+                    ? isDarkMode
+                      ? "bg-slate-800/50 text-slate-500 border border-slate-800 cursor-not-allowed shadow-none"
+                      : "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed shadow-none"
+                    : isDarkMode
+                    ? "bg-[#14B8A6] hover:bg-[#0D9488] text-[#0F172A] hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-[#14B8A6]/10"
+                    : "bg-[#0F172A] hover:bg-[#1E293B] text-white hover:scale-[1.01] active:scale-[0.99] shadow-lg shadow-slate-950/10"
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    <span>Extracting Media...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download size={18} />
+                    <span>Download</span>
+                  </>
+                )}
+              </button>
+            </div>
           </form>
         </div>
 
@@ -539,13 +545,8 @@ export default function XPage({ isDarkMode, setCurrentPage }: XPageProps) {
             </p>
           </div>
           <div className={`p-5 rounded-2xl border ${isDarkMode ? "bg-slate-900/40 border-slate-800/60" : "bg-white border-slate-200"}`}>
-            <div className="p-2 bg-[#14B8A6]/10 rounded-xl w-fit mb-3 flex items-center justify-center">
-              <img 
-                src="https://cdn.prod.website-files.com/5d66bdc65e51a0d114d15891/64cebdd90aef8ef8c749e848_X-EverythingApp-Logo-Twitter.jpg" 
-                alt="X Logo" 
-                className="w-5 h-5 object-cover rounded" 
-                referrerPolicy="no-referrer"
-              />
+            <div className="p-2.5 bg-[#14B8A6]/10 text-[#14B8A6] rounded-xl w-fit mb-3 flex items-center justify-center">
+              <Sparkles className="w-5 h-5" />
             </div>
             <h4 className="font-bold text-sm mb-1.5">Unrestricted Access</h4>
             <p className={`text-xs leading-relaxed ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
@@ -554,6 +555,5 @@ export default function XPage({ isDarkMode, setCurrentPage }: XPageProps) {
           </div>
         </div>
       </div>
-    </div>
   );
 }

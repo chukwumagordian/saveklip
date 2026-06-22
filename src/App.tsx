@@ -30,7 +30,8 @@ import {
   Cloud,
   Globe,
   Menu,
-  X
+  X,
+  Clipboard
 } from "lucide-react";
 import { MediaMetadata, FAQItem, VideoOption, AudioOption } from "./types";
 import LegalPages from "./components/LegalPages";
@@ -604,6 +605,26 @@ export default function App() {
     setTimeout(() => setCopiedText(null), 2000);
   };
 
+  const handlePaste = async () => {
+    try {
+      const inputEl = document.getElementById("url-input");
+      if (inputEl) {
+        (inputEl as HTMLInputElement).focus();
+      }
+
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          setUrl(text);
+        }
+      } else {
+        console.warn("Clipboard read text API is not supported in this browser context.");
+      }
+    } catch (err) {
+      console.log("Clipboard API access was restricted or denied by browser security. Reverted to standard manual paste focus.", err);
+    }
+  };
+
   const getFaqData = (): FAQItem[] => {
     if (currentPage === "tiktok") {
       return t.faqItemsTikTok;
@@ -1004,26 +1025,7 @@ export default function App() {
                   <div className="relative flex-1">
                     {/* Platform logo detector inside the input */}
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      {platform === "tiktok" ? (
-                        <div className="flex items-center justify-center p-1 rounded-md bg-black text-white border border-slate-900 shadow-sm shadow-black/10">
-                           <TikTokIcon size={14} />
-                        </div>
-                      ) : platform === "instagram" ? (
-                        <div className="flex items-center justify-center p-1 rounded-md bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 text-white shadow-sm shadow-rose-500/10">
-                           <Instagram size={14} className="stroke-[2.5]" />
-                        </div>
-                      ) : platform === "x" ? (
-                        <div className="flex items-center justify-center p-0.5 rounded-md bg-black border border-white/20 text-white shadow-sm shadow-black/10">
-                           <img 
-                             src="https://cdn.prod.website-files.com/5d66bdc65e51a0d114d15891/64cebdd90aef8ef8c749e848_X-EverythingApp-Logo-Twitter.jpg" 
-                             alt="X Logo" 
-                             className="w-4.5 h-4.5 object-cover rounded-md" 
-                             referrerPolicy="no-referrer"
-                           />
-                        </div>
-                      ) : (
-                        <Zap size={15} className={isDarkMode ? "text-slate-500" : "text-slate-400"} />
-                      )}
+                      <Sparkles size={15} className="text-[#14B8A6]" />
                     </div>
                     
                     <input
@@ -1037,7 +1039,7 @@ export default function App() {
                           ? t.placeholderInstagram
                           : t.placeholderHome
                       }
-                      className={`w-full pl-12 pr-10 sm:pr-20 py-4 rounded-2xl text-sm transition-all focus:outline-none focus:ring-2 border ${
+                      className={`w-full pl-12 pr-20 sm:pr-28 py-4 rounded-2xl text-sm transition-all focus:outline-none focus:ring-2 border ${
                         validationError
                           ? "border-rose-500 bg-rose-500/5 focus:ring-rose-500/20"
                           : isDarkMode
@@ -1047,20 +1049,34 @@ export default function App() {
                       id="url-input"
                     />
 
-                    {url && (
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
                       <button
                         type="button"
-                        onClick={() => { setUrl(""); setResult(null); }}
-                        className={`absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
-                          isDarkMode 
-                            ? "text-slate-400 hover:bg-slate-800 hover:text-white" 
-                            : "text-slate-400 hover:bg-slate-200 hover:text-slate-800"
-                        }`}
-                        title={t.clearLabel || "Clear link"}
+                        onClick={handlePaste}
+                        className={`p-2 rounded-lg text-xs font-semibold ${
+                          isDarkMode ? "bg-slate-800 hover:bg-slate-700 text-slate-300" : "bg-slate-200 hover:bg-slate-300 text-slate-700"
+                        } transition cursor-pointer`}
+                        id="url-paste-button-main"
+                        title="Paste Link"
                       >
-                        ✕
+                        <Clipboard className="w-4 h-4" />
                       </button>
-                    )}
+
+                      {url && (
+                        <button
+                          type="button"
+                          onClick={() => { setUrl(""); setResult(null); }}
+                          className={`p-2 rounded-lg text-xs transition-colors cursor-pointer ${
+                            isDarkMode 
+                              ? "text-slate-400 hover:bg-slate-800 hover:text-white" 
+                              : "text-slate-400 hover:bg-slate-200 hover:text-slate-800"
+                          }`}
+                          title={t.clearLabel || "Clear link"}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <button
@@ -1136,8 +1152,8 @@ export default function App() {
                 {(currentPage === "home" || currentPage === "tiktok") && (
                   <div className={`p-6 rounded-3xl border transition-all ${isDarkMode ? "bg-[#101626]/60 border-slate-800/80 hover:border-slate-750" : "bg-[#F8FAFC] border-slate-200/80 hover:border-slate-300/85 hover:shadow-sm"}`}>
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-black border border-slate-800 text-white flex items-center justify-center shadow-md shadow-black/20 shrink-0">
-                        <TikTokIcon size={20} className="text-white" />
+                      <div className="w-10 h-10 rounded-xl bg-black border border-slate-800 text-[#14B8A6] flex items-center justify-center shadow-md shadow-black/20 shrink-0">
+                        <Music size={18} />
                       </div>
                       <h3 className={`font-bold text-base ${isDarkMode ? "text-white" : "text-slate-900"}`}>{t.tiktokDownloader || "TikTok Downloader"}</h3>
                     </div>
@@ -1161,8 +1177,8 @@ export default function App() {
                 {(currentPage === "home" || currentPage === "instagram") && (
                   <div className={`p-6 rounded-3xl border transition-all ${isDarkMode ? "bg-[#101626]/60 border-slate-800/80 hover:border-slate-750" : "bg-[#F8FAFC] border-slate-200/80 hover:border-slate-300/85 hover:shadow-sm"}`}>
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 text-white flex items-center justify-center shadow-md shadow-rose-500/10 shrink-0">
-                        <Instagram size={18} className="stroke-[2.5]" />
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#14B8A6]/20 to-[#14B8A6] text-white flex items-center justify-center shadow-md shadow-[#14B8A6]/10 shrink-0">
+                        <Tv size={18} className="stroke-[2.5]" />
                       </div>
                       <h3 className={`font-bold text-base ${isDarkMode ? "text-white" : "text-slate-900"}`}>{t.instagramDownloader || "Instagram Downloader"}</h3>
                     </div>
@@ -1187,12 +1203,7 @@ export default function App() {
                   <div className={`p-6 rounded-3xl border transition-all ${isDarkMode ? "bg-[#101626]/60 border-slate-800/80 hover:border-slate-750" : "bg-[#F8FAFC] border-slate-200/80 hover:border-slate-300/85 hover:shadow-sm"}`}>
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-xl bg-[#14B8A6]/10 text-[#14B8A6] flex items-center justify-center shadow-md shadow-[#14B8A6]/5 shrink-0 overflow-hidden">
-                        <img 
-                          src="https://cdn.prod.website-files.com/5d66bdc65e51a0d114d15891/64cebdd90aef8ef8c749e848_X-EverythingApp-Logo-Twitter.jpg" 
-                          alt="X Logo" 
-                          className="w-7 h-7 object-cover rounded-md" 
-                          referrerPolicy="no-referrer"
-                        />
+                        <Zap size={18} className="stroke-[2.5]" />
                       </div>
                       <h3 className={`font-bold text-base ${isDarkMode ? "text-white" : "text-slate-900"}`}>X (Twitter) Downloader</h3>
                     </div>
@@ -1272,24 +1283,11 @@ export default function App() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-6 mb-6 border-dashed border-slate-200/60 dark:border-slate-800/60">
                   <div className="flex items-center gap-3">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest flex items-center gap-1.5 ${
-                      result.platform === "tiktok" 
-                        ? "bg-black text-white border border-slate-900 shadow-sm shadow-black/10"
-                        : result.platform === "x"
-                        ? "bg-black text-white border border-slate-900 shadow-sm shadow-black/10"
-                        : "bg-gradient-to-tr from-amber-400 via-rose-500 to-purple-600 text-white shadow-sm shadow-rose-500/10"
+                      isDarkMode 
+                        ? "bg-[#14B8A6]/10 border border-[#14B8A6]/20 text-[#14B8A6]" 
+                        : "bg-[#14B8A6]/10 border border-[#14B8A6]/20 text-[#0F172A]"
                      }`}>
-                      {result.platform === "tiktok" ? (
-                        <TikTokIcon size={12} className="text-white" />
-                      ) : result.platform === "x" ? (
-                        <img 
-                          src="https://cdn.prod.website-files.com/5d66bdc65e51a0d114d15891/64cebdd90aef8ef8c749e848_X-EverythingApp-Logo-Twitter.jpg" 
-                          alt="X Logo" 
-                          className="w-3.5 h-3.5 object-cover rounded-md" 
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
-                        <Instagram size={12} className="stroke-[2.5]" />
-                      )}
+                      <Sparkles size={11} />
                       {result.platform} {t.platformDetected || "detected"}
                     </span>
                     <span className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>

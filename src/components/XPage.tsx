@@ -263,7 +263,7 @@ export default function XPage({ isDarkMode, setCurrentPage }: XPageProps) {
             X (Twitter) Video Downloader
           </h1>
           <p className={`text-base max-w-xl mx-auto ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
-            Download public video, GIFs, and reels from any X or Twitter post in full HD quality. Safe, fast, and free.
+            Download X (Twitter) videos in High Quality
           </p>
         </div>
 
@@ -324,7 +324,7 @@ export default function XPage({ isDarkMode, setCurrentPage }: XPageProps) {
               ) : (
                 <>
                   <Download className="w-5 h-5" />
-                  Download Video / GIF
+                  Download Video
                 </>
               )}
             </button>
@@ -422,6 +422,18 @@ export default function XPage({ isDarkMode, setCurrentPage }: XPageProps) {
               {/* Download Streams Layout */}
               <div className="p-6 md:p-8 space-y-6">
                 <div>
+                  {/* Twitter/X Download Helper Instructions */}
+                  <div className={`mb-6 p-4 rounded-2xl border text-xs leading-relaxed ${
+                    isDarkMode 
+                      ? "bg-[#14B8A6]/10 border-[#14B8A6]/20 text-teal-200" 
+                      : "bg-[#14B8A6]/5 border-[#14B8A6]/10 text-teal-800"
+                  }`}>
+                    <p>
+                      💡 Downloads are redirected directly to Twitter's secure media network. 
+                      <strong> If the video plays in a new tab:</strong> right-click the video and select <strong>"Save Video As..."</strong> (or on mobile, long-press the video or tap the three dots icon in the video player and select <strong>"Download Video"</strong>) to save it with full quality!
+                    </p>
+                  </div>
+
                   <h4 className="text-sm font-bold flex items-center gap-2 mb-4">
                     <Video className="w-4 h-4 text-[#14B8A6]" />
                     Available Offline Video Tracks:
@@ -444,27 +456,16 @@ export default function XPage({ isDarkMode, setCurrentPage }: XPageProps) {
                             <span className="font-bold text-sm block sm:inline mr-2">
                               {opt.resolution}
                             </span>
-                            <span className={`text-[11px] px-2 py-0.5 rounded-md font-mono ${
-                              isDarkMode ? "bg-slate-800 text-slate-400" : "bg-slate-200 text-slate-600"
-                            }`}>
-                              Size: {opt.size || "Unknown Size"}
-                            </span>
+                            {opt.size && opt.size !== "Direct High-Speed Link" && (
+                              <span className={`text-[11px] px-2 py-0.5 rounded-md font-mono ${
+                                isDarkMode ? "bg-slate-800 text-slate-400" : "bg-slate-200 text-slate-600"
+                              }`}>
+                                Size: {opt.size}
+                              </span>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => copyToClipboard(opt.url, `video-${i}`)}
-                            className={`p-3 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 hover:scale-105 ${
-                              isDarkMode 
-                                ? "bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700" 
-                                : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50"
-                            } cursor-pointer`}
-                            title="Copy Direct Streaming Link"
-                            id={`copy-video-btn-${i}`}
-                          >
-                            {copiedText === `video-${i}` ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                            {copiedText === `video-${i}` ? "Copied!" : "Copy Link"}
-                          </button>
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
                           <button
                             onClick={() => {
                               const cleanResolution = sanitizeFilename(opt.resolution);
@@ -473,7 +474,7 @@ export default function XPage({ isDarkMode, setCurrentPage }: XPageProps) {
                               executeDownload(getProxyDownloadUrl(opt.url, opt.resolution), filename, `video-${i}`);
                             }}
                             disabled={!!activeDownloadId}
-                            className={`flex-1 sm:flex-initial px-5 py-3 rounded-xl text-white text-xs font-bold transition flex items-center justify-center gap-1.5 hover:scale-105 shadow-md cursor-pointer ${
+                            className={`w-full sm:w-auto px-5 py-3 rounded-xl text-white text-xs font-bold transition flex items-center justify-center gap-1.5 hover:scale-105 shadow-md cursor-pointer ${
                               activeDownloadId === `video-${i}`
                                 ? (downloadSuccess ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/10" : "bg-[#0D9488] shadow-[#0D9488]/10")
                                 : !!activeDownloadId
@@ -502,22 +503,6 @@ export default function XPage({ isDarkMode, setCurrentPage }: XPageProps) {
                         </div>
                       </div>
                     ))}
-                  </div>
-
-                  {/* Twitter/X Download Helper Instructions */}
-                  <div className={`mt-4 p-4 rounded-2xl border flex gap-3 text-xs leading-relaxed ${
-                    isDarkMode 
-                      ? "bg-[#14B8A6]/10 border-[#14B8A6]/20 text-teal-200" 
-                      : "bg-[#14B8A6]/5 border-[#14B8A6]/10 text-teal-800"
-                  }`}>
-                    <Info className="w-5 h-5 text-[#14B8A6] shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold mb-1">💡 Pro-Tip: Saving Twitter/X Videos</p>
-                      <p>
-                        Downloads are redirected directly to Twitter's secure media network. 
-                        <strong> If the video plays in a new tab:</strong> right-click the video and select <strong>"Save Video As..."</strong> (or on mobile, long-press the video or tap the three dots icon in the video player and select <strong>"Download Video"</strong>) to save it with full quality!
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>

@@ -1744,23 +1744,23 @@ const resolveTwitterVideoUrls = (urls: Set<string>): any[] => {
       const h = parseInt(resMatch[2], 10);
       score = w * h;
       if (w >= 1080 || h >= 1080) {
-        label = "1080p Full HD (Pristine Quality)";
+        label = "1080p Full HD";
       } else if (w >= 720 || h >= 720) {
-        label = "720p HD (High Quality)";
+        label = "720p HD";
       } else if (w >= 480 || h >= 480) {
-        label = "480p SD (Standard Quality)";
+        label = "480p SD";
       } else {
-        label = "360p Mobile Quality";
+        label = "360p Mobile";
       }
     } else if (url.includes("tag=12") || url.includes("tag=14") || url.includes("tag=15")) {
       score = 2073600;
-      label = "1080p Full HD (Pristine Quality)";
+      label = "1080p Full HD";
     } else if (url.includes("tag=13")) {
       score = 921600;
-      label = "720p HD (High Quality)";
+      label = "720p HD";
     } else {
       score = 921600;
-      label = "720p HD (High Quality)";
+      label = "720p HD";
     }
 
     return { url, score, label };
@@ -1776,7 +1776,7 @@ const resolveTwitterVideoUrls = (urls: Set<string>): any[] => {
       seenLabels.add(opt.label);
       uniqueOptions.push({
         resolution: opt.label,
-        size: "Direct High-Speed Link",
+        size: "",
         url: opt.url,
         fps: 30
       });

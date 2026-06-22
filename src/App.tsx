@@ -31,13 +31,16 @@ import {
   Globe,
   Menu,
   X,
-  Clipboard
+  Clipboard,
+  Play,
+  Video
 } from "lucide-react";
 import { MediaMetadata, FAQItem, VideoOption, AudioOption } from "./types";
 import LegalPages from "./components/LegalPages";
 import BlogPage from "./components/BlogPage";
 import XPage from "./components/XPage";
 import { BrushHighlight } from "./components/BrushHighlight";
+import { CyclingHighlight } from "./components/CyclingHighlight";
 import { LANGUAGES, LanguageCode, translations } from "./translations";
 
 function TikTokIcon({ className, size = 14 }: { className?: string; size?: number }) {
@@ -988,7 +991,7 @@ export default function App() {
             ) : currentPage === "instagram" ? (
               <BrushHighlight text={t.heroTitleInstagram} isDarkMode={isDarkMode} />
             ) : (
-              <BrushHighlight text={t.heroTitleHome} isDarkMode={isDarkMode} />
+              <CyclingHighlight text={t.heroTitleHome} isDarkMode={isDarkMode} />
             )}
           </motion.h1>
 
@@ -1328,7 +1331,7 @@ export default function App() {
                         controls
                         playsInline
                         referrerPolicy="no-referrer"
-                        className="w-full aspect-[9/16] object-cover max-h-[480px] select-none mx-auto"
+                        className={`w-full ${result.platform === "x" ? "aspect-video object-contain" : "aspect-[9/16] object-cover"} max-h-[480px] select-none mx-auto`}
                       />
                     </div>
 
@@ -1389,7 +1392,27 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Twitter/X Download Helper Instructions */}
+                    {result.platform === "x" && (
+                      <div className={`p-4 rounded-2xl border text-xs leading-relaxed ${
+                        isDarkMode 
+                          ? "bg-[#14B8A6]/10 border-[#14B8A6]/20 text-teal-205" 
+                          : "bg-[#14B8A6]/5 border-[#14B8A6]/10 text-teal-900"
+                      }`}>
+                        <p>
+                          💡 Downloads are redirected directly to Twitter's secure media network. 
+                          <strong> If the video plays in a new tab:</strong> right-click the video and select <strong>"Save Video As..."</strong> (or on mobile, long-press the video or tap the three dots icon in the video player and select <strong>"Download Video"</strong>) to save it with full quality!
+                        </p>
+                      </div>
+                    )}
+
                     {/* format downloader list rendering */}
+                    {result.platform === "x" && (
+                      <h4 className={`text-sm font-bold flex items-center gap-2 mb-4 ${isDarkMode ? "text-white" : "text-slate-900"}`}>
+                        <Video className="w-4 h-4 text-[#14B8A6]" />
+                        Available Offline Video Tracks:
+                      </h4>
+                    )}
                     <div className="space-y-3.5">
                       {result.videoOptions.map((opt: VideoOption, i) => {
                         const optionId = `video-${opt.resolution}`;
@@ -1403,33 +1426,60 @@ export default function App() {
                                 ? isDarkMode 
                                   ? "bg-slate-900 border-[#14B8A6]/50" 
                                   : "bg-[#14B8A6]/5 border-[#14B8A6]/40 shadow-sm"
+                                : result.platform === "x"
+                                ? isDarkMode 
+                                  ? "bg-slate-900/60 border-slate-800/80 hover:border-[#14B8A6]/30" 
+                                  : "bg-slate-50 border-slate-200 hover:border-[#14B8A6]/30"
                                 : isDarkMode 
                                 ? "bg-slate-900/20 border-slate-800/80 hover:bg-slate-900/60 hover:border-slate-700" 
                                 : "bg-[#F8FAFC]/55 border-slate-200 hover:bg-slate-50/60 hover:border-slate-300"
                             }`}
                           >
                             <div className="flex items-center gap-3">
-                              <div className={`p-2 rounded-xl flex items-center justify-center ${
-                                opt.resolution.includes("HD")
-                                  ? isDarkMode 
-                                    ? "bg-teal-950/20 text-[#14B8A6] border border-teal-900/40"
-                                    : "bg-[#14B8A6]/10 text-[#0F172A] border border-[#14B8A6]/20"
-                                  : isDarkMode ? "bg-slate-800 text-slate-400" : "bg-slate-100 text-slate-600"
-                              }`}>
-                                <Film size={16} />
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="font-bold text-sm">{opt.resolution}</span>
-                                  {opt.resolution.includes("HD") && (
-                                    <span className="text-[9px] uppercase tracking-widest font-extrabold bg-[#14B8A6] text-white px-1.5 py-0.5 rounded">
-                                      {t.proHDBadge || "Pro HD"}
-                                    </span>
-                                  )}
+                              {result.platform === "x" ? (
+                                <div className="p-3 rounded-xl bg-[#14B8A6]/10 text-[#14B8A6] shrink-0">
+                                  <Play className="w-5 h-5 fill-[#14B8A6]/20" />
                                 </div>
-                                <span className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
-                                  {t.mp4Format || "MP4 format"} • {opt.fps}fps • {opt.size}
-                                </span>
+                              ) : (
+                                <div className={`p-2 rounded-xl flex items-center justify-center ${
+                                  opt.resolution.includes("HD")
+                                    ? isDarkMode 
+                                      ? "bg-teal-950/20 text-[#14B8A6] border border-teal-900/40"
+                                      : "bg-[#14B8A6]/10 text-[#0F172A] border border-[#14B8A6]/20"
+                                    : isDarkMode ? "bg-slate-800 text-slate-400" : "bg-slate-100 text-slate-600"
+                                }`}>
+                                  <Film size={16} />
+                                </div>
+                              )}
+                              <div>
+                                {result.platform === "x" ? (
+                                  <div>
+                                    <span className="font-bold text-sm block sm:inline mr-2">
+                                      {opt.resolution}
+                                    </span>
+                                    {opt.size && opt.size !== "Direct High-Speed Link" && (
+                                      <span className={`text-[11px] px-2 py-0.5 rounded-md font-mono ${
+                                        isDarkMode ? "bg-slate-800 text-slate-400" : "bg-slate-200 text-slate-600"
+                                      }`}>
+                                        Size: {opt.size}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-bold text-sm">{opt.resolution}</span>
+                                      {opt.resolution.includes("HD") && (
+                                        <span className="text-[9px] uppercase tracking-widest font-extrabold bg-[#14B8A6] text-white px-1.5 py-0.5 rounded">
+                                          {t.proHDBadge || "Pro HD"}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                      {t.mp4Format || "MP4 format"} • {opt.fps}fps • {opt.size}
+                                    </span>
+                                  </>
+                                )}
                               </div>
                             </div>
 
@@ -1438,28 +1488,28 @@ export default function App() {
                               disabled={!!activeDownloadId && !isDownloading}
                               className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                                 isDownloading
-                                  ? "bg-[#14B8A6] text-[#0F172A] min-w-[130px]"
+                                  ? downloadSuccess
+                                    ? "bg-emerald-500 hover:bg-emerald-600 shadow-md shadow-emerald-500/10 text-white min-w-[130px]"
+                                    : "bg-[#0D9488] text-white min-w-[130px] shadow-sm shadow-[#14B8A6]/10"
                                   : !!activeDownloadId
-                                  ? isDarkMode ? "bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed shadow-none" : "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed shadow-none"
-                                  : isDarkMode
-                                  ? "bg-[#14B8A6] hover:bg-[#0D9488] text-[#0F172A] hover:scale-[1.02] shadow-sm"
-                                  : "bg-[#0F172A] hover:bg-[#1E293B] text-white hover:scale-[1.02] shadow-sm"
+                                  ? "bg-slate-400 text-white cursor-not-allowed opacity-50 shadow-none pointer-events-none"
+                                  : "bg-[#14B8A6] hover:bg-[#0D9488] text-white hover:scale-[1.05] shadow-md shadow-[#14B8A6]/10"
                               }`}
                             >
                               {downloadSuccess && isDownloading ? (
                                 <>
-                                  <Check size={13} className="text-teal-400 font-bold" />
-                                  <span className="text-teal-400">{t.finishedLabel || "Finished!"}</span>
+                                  <Check size={13} className="text-white font-bold" />
+                                  <span className="text-white">{t.finishedLabel || "Finished!"}</span>
                                 </>
                               ) : isDownloading ? (
                                 <>
-                                  <Loader2 size={13} className="animate-spin" />
-                                  <span>{downloadProgress}% {t.savedLabel || "Saved"}</span>
+                                  <Loader2 size={13} className="animate-spin text-white" />
+                                  <span className="text-white">{downloadProgress}% {t.savedLabel || "Saved"}</span>
                                 </>
                               ) : (
                                 <>
                                   <Download size={13} />
-                                  <span>{t.downloadVideoBtn || "Download Video"}</span>
+                                  <span>{result.platform === "x" ? "Download MP4" : (t.downloadVideoBtn || "Download Video")}</span>
                                 </>
                               )}
                             </button>
@@ -1467,77 +1517,63 @@ export default function App() {
                         );
                       })}
 
-                      {/* Twitter/X Download Helper Instructions */}
-                      {result.platform === "x" && (
-                        <div className={`p-4 rounded-2xl border flex gap-3 text-xs leading-relaxed ${
-                          isDarkMode 
-                            ? "bg-[#14B8A6]/10 border-[#14B8A6]/20 text-teal-200" 
-                            : "bg-[#14B8A6]/5 border-[#14B8A6]/10 text-teal-800"
-                        }`}>
-                          <Info className="w-5 h-5 text-[#14B8A6] shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-bold mb-1">💡 Pro-Tip: Saving Twitter/X Videos</p>
-                            <p>
-                              Downloads are redirected directly to Twitter's secure media network. 
-                              <strong> If the video plays in a new tab:</strong> right-click the video and select <strong>"Save Video As..."</strong> (or on mobile, long-press the video or tap the three dots icon in the video player and select <strong>"Download Video"</strong>) to save it with full quality!
-                            </p>
-                          </div>
-                        </div>
-                      )}
+
 
                       {/* Unified Audio Option Row */}
-                      <div
-                        className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-                          activeDownloadId === "audio-extract"
-                            ? isDarkMode ? "bg-slate-900 border-[#14B8A6]/50" : "bg-[#14B8A6]/5 border-[#14B8A6]/40 shadow-sm"
-                            : isDarkMode 
-                            ? "bg-slate-900/20 border-slate-800/80 hover:bg-slate-900/60 hover:border-slate-700" 
-                            : "bg-[#F8FAFC]/55 border-slate-200 hover:bg-slate-50/60 hover:border-slate-300"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-xl flex items-center justify-center ${isDarkMode ? "bg-slate-800 text-[#14B8A6]" : "bg-slate-100 text-[#14B8A6]"}`}>
-                            <Music size={16} />
-                          </div>
-                          <div>
-                            <span className="font-bold text-sm block">{t.audioMP3Label || "Audio (MP3)"}</span>
-                            <span className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
-                              {t.audioMP3Desc || "High Quality Audio Extraction"} • {result.audioOption.duration} mins • MP3 format • {result.audioOption.size}
-                            </span>
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => executeDownload(result.audioOption.url, `${result.platform}_${result.id}_extracted.mp3`, "audio-extract")}
-                          disabled={!!activeDownloadId && activeDownloadId !== "audio-extract"}
-                          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                      {result.platform !== "x" && (
+                        <div
+                          className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                             activeDownloadId === "audio-extract"
-                              ? "bg-[#14B8A6] text-[#0F172A] min-w-[130px]"
-                              : !!activeDownloadId
-                              ? isDarkMode ? "bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed shadow-none" : "bg-slate-200 text-slate-450 border border-slate-300 cursor-not-allowed shadow-none"
-                              : isDarkMode
-                              ? "bg-[#14B8A6] hover:bg-[#0D9488] text-[#0F172A] hover:scale-[1.02]"
-                              : "bg-[#0F172A] hover:bg-[#1E293B] text-white hover:scale-[1.02]"
+                              ? isDarkMode ? "bg-slate-900 border-[#14B8A6]/50" : "bg-[#14B8A6]/5 border-[#14B8A6]/40 shadow-sm"
+                              : isDarkMode 
+                              ? "bg-slate-900/20 border-slate-800/80 hover:bg-slate-900/60 hover:border-slate-700" 
+                              : "bg-[#F8FAFC]/55 border-slate-200 hover:bg-slate-50/60 hover:border-slate-300"
                           }`}
                         >
-                          {downloadSuccess && activeDownloadId === "audio-extract" ? (
-                            <>
-                              <Check size={13} className="text-teal-400 font-bold" />
-                              <span className="text-teal-400">{t.finishedLabel || "Finished!"}</span>
-                            </>
-                          ) : activeDownloadId === "audio-extract" ? (
-                            <>
-                              <Loader2 size={13} className="animate-spin" />
-                              <span>{downloadProgress}% {t.savedLabel || "Saved"}</span>
-                            </>
-                          ) : (
-                            <>
-                              <Music size={13} />
-                              <span>{t.getMP3AudioBtn || "Get MP3 Audio"}</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-xl flex items-center justify-center ${isDarkMode ? "bg-slate-800 text-[#14B8A6]" : "bg-slate-100 text-[#14B8A6]"}`}>
+                              <Music size={16} />
+                            </div>
+                            <div>
+                              <span className="font-bold text-sm block">{t.audioMP3Label || "Audio (MP3)"}</span>
+                              <span className={`text-xs ${isDarkMode ? "text-slate-500" : "text-slate-400"}`}>
+                                {t.audioMP3Desc || "High Quality Audio Extraction"} • {result.audioOption.duration} mins • MP3 format • {result.audioOption.size}
+                              </span>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => executeDownload(result.audioOption.url, `${result.platform}_${result.id}_extracted.mp3`, "audio-extract")}
+                            disabled={!!activeDownloadId && activeDownloadId !== "audio-extract"}
+                            className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                              activeDownloadId === "audio-extract"
+                                ? downloadSuccess
+                                  ? "bg-emerald-500 hover:bg-emerald-600 shadow-md shadow-emerald-500/10 text-white min-w-[130px]"
+                                  : "bg-[#0D9488] text-white min-w-[130px] shadow-sm shadow-[#14B8A6]/10"
+                                : !!activeDownloadId
+                                ? "bg-slate-400 text-white cursor-not-allowed opacity-50 shadow-none pointer-events-none"
+                                : "bg-[#14B8A6] hover:bg-[#0D9488] text-white hover:scale-[1.05] shadow-md shadow-[#14B8A6]/10"
+                            }`}
+                          >
+                            {downloadSuccess && activeDownloadId === "audio-extract" ? (
+                              <>
+                                <Check size={13} className="text-white font-bold" />
+                                <span className="text-white">{t.finishedLabel || "Finished!"}</span>
+                              </>
+                            ) : activeDownloadId === "audio-extract" ? (
+                              <>
+                                <Loader2 size={13} className="animate-spin text-white" />
+                                <span className="text-white">{downloadProgress}% {t.savedLabel || "Saved"}</span>
+                              </>
+                            ) : (
+                              <>
+                                <Music size={13} />
+                                <span>{t.getMP3AudioBtn || "Get MP3 Audio"}</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {/* Security credentials line */}

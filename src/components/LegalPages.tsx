@@ -15,8 +15,8 @@ import {
 import { translations, LanguageCode } from "../translations";
 
 interface LegalPagesProps {
-  currentPage: "home" | "about" | "contact" | "privacy" | "terms" | "dmca" | "tiktok" | "instagram";
-  setCurrentPage: (page: "home" | "about" | "contact" | "privacy" | "terms" | "dmca" | "tiktok" | "instagram") => void;
+  currentPage: "home" | "about" | "contact" | "privacy" | "terms" | "dmca" | "tiktok" | "instagram" | "x" | "blog";
+  setCurrentPage: (page: "home" | "about" | "contact" | "privacy" | "terms" | "dmca" | "tiktok" | "instagram" | "x" | "blog") => void;
   isDarkMode: boolean;
   language: LanguageCode;
 }
@@ -149,7 +149,7 @@ export default function LegalPages({ currentPage, setCurrentPage, isDarkMode, la
                    Get In Touch
                 </h3>
                 <p className="text-xs sm:text-sm leading-relaxed opacity-85 text-slate-600 dark:text-slate-300">
-                  Have a suggestion to improve the extraction tool? Or did you face an error with an Instagram reel link? Drop us a line. We are open to technical feedback and usually reply within 24 to 48 business hours.
+                  Have a suggestion to improve the extraction tool? Or did you face an error with a TikTok, Instagram, or X (Twitter) video link? Drop us a line. We are open to technical feedback and usually reply within 24 to 48 business hours.
                 </p>
 
                 <div className="space-y-4 pt-4 border-t border-slate-150 dark:border-slate-855">
@@ -380,7 +380,7 @@ export default function LegalPages({ currentPage, setCurrentPage, isDarkMode, la
                   3. Disclaimer of Platforms and Trademarks
                 </h3>
                 <p>
-                  Our platform maintains complete administrative, stylistic, and operational independence. We are <strong>not affiliated, endorsed, sponsored, associated, or officially connected</strong> with ByteDance Ltd, TikTok, Instagram, Meta Platforms Inc, Facebook, or any of their parent corporations, subsidiaries, or legal affiliates. Every social media trademark, symbol, or brand name cited within our research blogs remains the exclusive intellectual property of its respective owner, and is referenced here under fair-use index conventions.
+                  Our platform maintains complete administrative, stylistic, and operational independence. We are <strong>not affiliated, endorsed, sponsored, associated, or officially connected</strong> with ByteDance Ltd, TikTok, Instagram, Meta Platforms Inc, Facebook, X Corp, Twitter, X, or any of their parent corporations, subsidiaries, or legal affiliates. Every social media trademark, symbol, or brand name cited within our research blogs remains the exclusive intellectual property of its respective owner, and is referenced here under fair-use index conventions.
                 </p>
               </section>
 
@@ -457,7 +457,7 @@ export default function LegalPages({ currentPage, setCurrentPage, isDarkMode, la
                   Please be informed that SaveKlip is structurally designed as an informational blog and developers' workbench providing stateless, client-side browser-based utilities. <strong>We do not host, store, stream, or maintain databases containing any video files, MP4 files, audio tracks, or raw images on our server infrastructure</strong>.
                 </p>
                 <p>
-                  All utility calculations, format testing, and diagnostic checks run directly within the visitor's local web browser engine. Because we do not store files on our networks, we are incapable of removing materials from external social media host servers (e.g., Meta, Instagram, ByteDance, TikTok). To ensure permanent file deletion across the internet, copyright owners must contact the official network operators hosting the source records or the individual users who uploaded them.
+                  All utility calculations, format testing, and diagnostic checks run directly within the visitor's local web browser engine. Because we do not store files on our networks, we are incapable of removing materials from external social media host servers (e.g., Meta, Instagram, ByteDance, TikTok, X Corp, Twitter, X). To ensure permanent file deletion across the internet, copyright owners must contact the official network operators hosting the source records or the individual users who uploaded them.
                 </p>
               </section>
 

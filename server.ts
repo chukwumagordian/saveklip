@@ -3271,18 +3271,30 @@ app.post("/api/extract", async (req, res) => {
 
   const trimmedUrl = url.trim();
 
-  // Validate and parse TikTok, Instagram or Facebook URL
+  // Validate and parse TikTok, Instagram, Facebook or X (Twitter) URL
   const isTikTok = /tiktok\.com/i.test(trimmedUrl);
   const isInstagram = /(instagram\.com|instagr\.am)/i.test(trimmedUrl);
   const isFacebook = /(facebook\.com|fb\.watch|fb\.gg|fb\.com)/i.test(trimmedUrl);
+  const isX = /(twitter\.com|x\.com)/i.test(trimmedUrl);
 
-  if (!isTikTok && !isInstagram && !isFacebook) {
+  if (!isTikTok && !isInstagram && !isFacebook && !isX) {
     return res.status(400).json({
-      error: "Unsupported URL. Please enter a valid and active TikTok, Instagram or Facebook video link.",
+      error: "Unsupported URL. Please enter a valid and active TikTok, Instagram, Facebook or X (Twitter) video link.",
     });
   }
 
   try {
+    if (isX) {
+      try {
+        const metadata = await extractXData(trimmedUrl);
+        return res.json({ success: true, metadata });
+      } catch (xErr: any) {
+        console.log("[X Scraper via Unified API] Fallback triggered. Generating fallback metadata.");
+        const fallbackMetadata = await getXFallbackMetadata(trimmedUrl);
+        return res.json({ success: true, metadata: fallbackMetadata });
+      }
+    }
+
     if (isFacebook) {
       try {
         const metadata = await extractFacebookData(trimmedUrl);

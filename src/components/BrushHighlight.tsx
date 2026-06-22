@@ -8,27 +8,11 @@ interface BrushHighlightProps {
 
 export const BrushHighlight: React.FC<BrushHighlightProps> = ({ text, isDarkMode }) => {
   const highlightKeywords = [
-    "High-Quality",
-    "high-quality",
-    "High Quality",
-    "high quality",
-    "alta calidad",
-    "haute qualité",
-    "hoher Qualität",
-    "alta qualidade",
-    "بجودة عالية",
-    "ہائی کوالٹی",
-    "हाई-क्वालिटी",
-    "হাই-কোয়ালিটিতে",
-    "高清",
-    "高画質",
-    "без водяных знаков",
-    "alta qualità",
-    "Yüksek Kalitede",
-    "Kualitas Tinggi",
-    "chất lượng cao",
-    "wysokiej jakości",
-    "hoge kwaliteit"
+    "TikTok",
+    "Instagram",
+    "X / Twitter",
+    "Twitter",
+    "X"
   ];
 
   const matchedKeyword = highlightKeywords.find(kw => 

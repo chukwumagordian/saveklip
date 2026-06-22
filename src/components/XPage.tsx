@@ -40,16 +40,24 @@ export default function XPage({ isDarkMode, setCurrentPage }: XPageProps) {
   const handlePaste = async () => {
     try {
       setError(null);
+      // Focus the input first so user pointer is placed in the input box immediately
+      const inputEl = document.getElementById("twitter-url-input");
+      if (inputEl) {
+        (inputEl as HTMLInputElement).focus();
+      }
+
       if (navigator.clipboard && navigator.clipboard.readText) {
         const text = await navigator.clipboard.readText();
         if (text) {
           setUrl(text);
         }
       } else {
-        setError("Clipboard paste action is restricted in this environment. Please paste the X link manually.");
+        // Fallback info if API is completely unavailable
+        console.warn("Clipboard read text API is not supported in this browser context.");
       }
     } catch (err) {
-      setError("Clipboard paste action is restricted. Please paste the link manually.");
+      // Catch DOMException on denied clipboard permissions gracefully without a loud error toast/text
+      console.log("Clipboard API access was restricted or denied by browser security. Reverted to standard manual paste focus.", err);
     }
   };
 

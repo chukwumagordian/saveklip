@@ -810,6 +810,13 @@ app.get("/api/download", async (req, res) => {
     return res.status(400).send("Parameter 'url' is required.");
   }
 
+  // Set up client disconnection abort signal to clean up server-side download fetches immediately
+  const clientAbortController = new AbortController();
+  req.on("close", () => {
+    clientAbortController.abort();
+    console.log("[Proxy] Client connection terminated. Aborting upstream downloads.");
+  });
+
   // Defensive deep unwrapping of double-wrapped api urls
   while (mediaUrl && (mediaUrl.startsWith("/api/download") || mediaUrl.includes("/api/download?"))) {
     try {
@@ -881,6 +888,7 @@ app.get("/api/download", async (req, res) => {
           "Accept": "*/*",
           "Referer": "https://www.instagram.com/",
         },
+        signal: clientAbortController.signal,
       });
 
       if (response.ok && response.body) {
@@ -944,7 +952,7 @@ app.get("/api/download", async (req, res) => {
     }
 
     // For standard platforms, proceed with streaming proxy
-    let response = await fetch(mediaUrl, { headers });
+    let response = await fetch(mediaUrl, { headers, signal: clientAbortController.signal });
 
     if (!response.ok) {
       console.log(`Proxy source connection retry with secondary profiles...`);
@@ -955,7 +963,7 @@ app.get("/api/download", async (req, res) => {
       if (req.headers.range) {
         minimalistHeaders["Range"] = req.headers.range;
       }
-      response = await fetch(mediaUrl, { headers: minimalistHeaders });
+      response = await fetch(mediaUrl, { headers: minimalistHeaders, signal: clientAbortController.signal });
     }
 
     if (!response.ok) {
@@ -1010,6 +1018,10 @@ app.get("/api/download", async (req, res) => {
       res.status(500).send("No readable media body stream.");
     }
   } catch (error: any) {
+    if (error.name === "AbortError") {
+      console.log("[Proxy] Download stream successfully aborted on client disconnect.");
+      return;
+    }
     console.log("Secondary stream routing active for media content.");
     // Prioritize direct 302/307 redirect so the browser fetches the original media directly, bypasses server blocks & delivers the actual video!
     try {
@@ -1035,7 +1047,7 @@ app.get("/api/download", async (req, res) => {
         const fallbackUrl = fallbackVideos[absDSeed % fallbackVideos.length];
 
         console.log(`Fetching proxy fallback video for platform.`);
-        const fbRes = await fetch(fallbackUrl);
+        const fbRes = await fetch(fallbackUrl, { signal: clientAbortController.signal });
 
         res.setHeader("Content-Disposition", isInline ? "inline" : `attachment; filename="${encodeURIComponent(filename)}"`);
         res.setHeader("Content-Type", "video/mp4");

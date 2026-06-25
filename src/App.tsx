@@ -685,12 +685,7 @@ export default function App() {
                         label: currentPage !== "home" ? "Home (video downloader)" : (t.home || "Home")
                       },
                       { key: "blog", label: t.blog || "Blog" },
-                      { 
-                        key: "x", 
-                        label: "X (Twitter) Downloader",
-                        badge: "NEW"
-                      },
-                    ].map((item) => (
+                    ].map((item: { key: string; label: string; badge?: string }) => (
                       <button
                         key={item.key}
                         onClick={() => {
@@ -934,12 +929,6 @@ export default function App() {
                 </motion.div>
               </button>
               
-              {/* NEW feature indicator badge attached to the top of the hamburger menu icon */}
-              {!isAdsenseMenuOpen && (
-                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-7 items-center justify-center rounded-full bg-red-500 text-[8px] font-extrabold text-white shadow-md ring-1 ring-white animate-bounce select-none pointer-events-none">
-                  NEW
-                </span>
-              )}
             </div>
           </div>
         </div>

@@ -39,6 +39,7 @@ import { MediaMetadata, FAQItem, VideoOption, AudioOption } from "./types";
 import LegalPages from "./components/LegalPages";
 import BlogPage from "./components/BlogPage";
 import XPage from "./components/XPage";
+import CookieConsent from "./components/CookieConsent";
 import { BrushHighlight } from "./components/BrushHighlight";
 import { CyclingHighlight } from "./components/CyclingHighlight";
 import { LANGUAGES, LanguageCode, translations } from "./translations";
@@ -1580,6 +1581,22 @@ export default function App() {
           )}
         </AnimatePresence>
 
+        {/* Google AdSense Compliant Banner Ad Slot */}
+        <section className="mt-20 max-w-4xl mx-auto" id="adsense-homepage-mid-slot">
+          <div className="flex flex-col items-center justify-center p-6 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/10 dark:bg-slate-900/5 text-center">
+            <span className="text-[9px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-500 mb-2">Advertisement</span>
+            <div className="w-full max-w-[728px] h-[90px] hidden md:flex items-center justify-center bg-slate-100/30 dark:bg-slate-900/30 rounded-xl border border-slate-150 dark:border-slate-800 text-xs text-slate-400 font-mono">
+              Google Responsive Leaderboard Unit (728x90)
+            </div>
+            <div className="w-full max-w-[320px] h-[100px] flex md:hidden items-center justify-center bg-slate-100/30 dark:bg-slate-900/30 rounded-xl border border-slate-150 dark:border-slate-800 text-xs text-slate-400 font-mono">
+              Google Mobile Banner Unit (320x100)
+            </div>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2">
+              Ads are placed in safe areas, ensuring zero interference with downloader controls or text inputs.
+            </p>
+          </div>
+        </section>
+
         {/* FAQ ACCORDION SECTION */}
         <section className="mt-20 max-w-4xl mx-auto space-y-6">
           <div className="text-center mb-8">
@@ -1743,6 +1760,7 @@ export default function App() {
         </div>
       </footer>
 
+      <CookieConsent isDarkMode={isDarkMode} onOpenPrivacyPolicy={() => setCurrentPage("privacy")} />
     </div>
   );
 }

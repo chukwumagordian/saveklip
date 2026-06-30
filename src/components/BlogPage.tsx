@@ -2764,6 +2764,22 @@ export default function BlogPage({ isDarkMode, setCurrentPage, language }: BlogP
                 </div>
               )}
 
+              {/* Google AdSense Safe Ad Slot */}
+              <div className="my-8 pt-4 border-t border-slate-100 dark:border-slate-800/60" id="adsense-article-footer-slot">
+                <div className="flex flex-col items-center justify-center p-6 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/20 dark:bg-slate-900/10 text-center">
+                  <span className="text-[9px] font-bold tracking-widest uppercase text-slate-400 dark:text-slate-500 mb-1.5">Advertisement</span>
+                  <div className="w-full max-w-[728px] h-[90px] hidden md:flex items-center justify-center bg-slate-100/40 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-800 text-xs text-slate-400 font-mono">
+                    Google Responsive Ad Unit (728x90 Billboard/Leaderboard)
+                  </div>
+                  <div className="w-full max-w-[300px] h-[250px] flex md:hidden items-center justify-center bg-slate-100/40 dark:bg-slate-900/40 rounded-xl border border-slate-100 dark:border-slate-800 text-xs text-slate-400 font-mono">
+                    Google Mobile Ad Unit (300x250 Medium Rectangle)
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 max-w-sm mt-3 leading-relaxed">
+                    This designated ad slot is fully optimized for dynamic Google AdSense display units, respecting publisher layout margins.
+                  </p>
+                </div>
+              </div>
+
               {/* SOCIAL SHARING WIDGET BLOCK */}
               <div className={`mt-10 p-5 rounded-3xl border transition-all ${
                 isDarkMode 
